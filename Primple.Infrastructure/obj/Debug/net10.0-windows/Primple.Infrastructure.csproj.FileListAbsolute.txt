@@ -1,0 +1,15 @@
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\bin\Debug\net10.0-windows\Primple.Infrastructure.deps.json
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\bin\Debug\net10.0-windows\Primple.Infrastructure.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\bin\Debug\net10.0-windows\Primple.Infrastructure.pdb
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\bin\Debug\net10.0-windows\Primple.Core.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\bin\Debug\net10.0-windows\Primple.Core.pdb
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\Primple.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\Primple.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\Primple.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\Primple.Infrastructure.AssemblyInfo.cs
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\Primple.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\Primple..A260A295.Up2Date
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\Primple.Infrastructure.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\refint\Primple.Infrastructure.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\Primple.Infrastructure.pdb
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\ref\Primple.Infrastructure.dll

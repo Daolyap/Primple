@@ -1,0 +1,15 @@
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\bin\Debug\net10.0-windows\UltimateSTLMaker.Infrastructure.deps.json
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\bin\Debug\net10.0-windows\UltimateSTLMaker.Infrastructure.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\bin\Debug\net10.0-windows\UltimateSTLMaker.Infrastructure.pdb
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\bin\Debug\net10.0-windows\UltimateSTLMaker.Core.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\bin\Debug\net10.0-windows\UltimateSTLMaker.Core.pdb
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\obj\Debug\net10.0-windows\UltimateSTLMaker.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\obj\Debug\net10.0-windows\UltimateSTLMaker.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\obj\Debug\net10.0-windows\UltimateSTLMaker.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\obj\Debug\net10.0-windows\UltimateSTLMaker.Infrastructure.AssemblyInfo.cs
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\obj\Debug\net10.0-windows\UltimateSTLMaker.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\obj\Debug\net10.0-windows\Ultimate.276C3B11.Up2Date
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\obj\Debug\net10.0-windows\UltimateSTLMaker.Infrastructure.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\obj\Debug\net10.0-windows\refint\UltimateSTLMaker.Infrastructure.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\obj\Debug\net10.0-windows\UltimateSTLMaker.Infrastructure.pdb
+C:\Users\Daolyap\Documents\Projects\STL Maker\UltimateSTLMaker.Infrastructure\obj\Debug\net10.0-windows\ref\UltimateSTLMaker.Infrastructure.dll

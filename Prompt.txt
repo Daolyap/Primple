@@ -1,0 +1,30 @@
+I'm looking to make the ultimate STL maker online tool. The idea is, Users use this software (.NET application, not Webapp) to create various STL files.
+
+Lets get the base project built before we implement advanced features, but it's important you always keep the following into consideration.
+
+- Keeping development and code clear, so any LLM or human can pick up where you left off, without context, at all time. This means LLMs and humans in the future, including yourself, need to know what they're doing, and what the rules are, without any context.
+
+- Always keeping security as a priority, over functionality. Our model is Security, Functionality, Quality, Additions. Additions are nice to haves.
+
+- Keep code as advanced as it needs to be, and as clear as it can be.
+
+- Ensure future development is easy, making the project build off a modular system which is easy to adapt and add new features. 
+
+What is the app?
+This app is a sleek, modern, STL development platform, with support for other 3D modelling formats, but its main "selling point" and target market group, being 3D printing. It's free, account less, but does have an optional donation section. We will implement the donation system later, it's A in the SFQA model I defined earlier.
+
+In the base application, it should have a simple STL editor, allowing precision for printers, with baseline tools and a solid interface. The other tool is taking an area from Google Maps, and turning it into a 3D model, with different configurations. These configurations are to at LEAST have the following:
+- 2D (Base plane in one colour, artefacts and other details in another, creating a "2D map")
+- 3D - A 3D map of the area, based on Google Maps
+- Configurable colour options
+
+If the map one is impossible, or an incredible challenge, make a more simplistic, but still functional version. Some other tools to be included in the baseline editor:
+- Image to 3D model (no AI, 2D image)
+- Templates (Different types of prints)
+- All fundamental and crucial tools 3D printers require, on the software level, similar to other applications, but not copying any at all, ever.
+
+Projects can be saved as .FIG
+
+The entire app is to follow a glass morphism design, and is not allowed to use emojis, anywhere.
+
+This will be version controlled in GitHub, and I would like a GitHub Action to build the application, and another which is an executable I can just run, without building/installing it. The MSI / Installer MUST have customisability.

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Primple.Core/Primple.Core.csproj" />
+  <Project Path="Primple.Desktop/Primple.Desktop.csproj" />
+  <Project Path="Primple.Infrastructure/Primple.Infrastructure.csproj" />
+  <Project Path="Primple.Tests/Primple.Tests.csproj" />
+</Solution>

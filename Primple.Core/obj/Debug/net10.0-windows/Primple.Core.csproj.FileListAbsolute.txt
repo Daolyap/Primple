@@ -1,0 +1,11 @@
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\bin\Debug\net10.0-windows\Primple.Core.deps.json
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\bin\Debug\net10.0-windows\Primple.Core.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\bin\Debug\net10.0-windows\Primple.Core.pdb
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-windows\Primple.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-windows\Primple.Core.AssemblyInfoInputs.cache
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-windows\Primple.Core.AssemblyInfo.cs
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-windows\Primple.Core.csproj.CoreCompileInputs.cache
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-windows\Primple.Core.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-windows\refint\Primple.Core.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-windows\Primple.Core.pdb
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-windows\ref\Primple.Core.dll
