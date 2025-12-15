@@ -80,6 +80,20 @@ jobs:
     - name: Create WiX Source File
       run: |
         $version = "${{ steps.gitversion.outputs.majorMinorPatch }}"
+        
+        # Get all DLL files from publish directory
+        $dllFiles = Get-ChildItem -Path "publish/msi-staging" -Filter "*.dll" | Select-Object -ExpandProperty Name
+        
+        # Generate Component elements for each DLL
+        $dllComponents = ""
+        foreach ($dll in $dllFiles) {
+          $dllComponents += @"
+              <Component>
+                <File Source="publish/msi-staging/$dll" />
+              </Component>
+        "@
+        }
+        
         $wxsContent = @"
         <?xml version="1.0" encoding="UTF-8"?>
         <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
@@ -127,12 +141,7 @@ jobs:
               <Component>
                 <File Source="publish/msi-staging/Primple.Desktop.runtimeconfig.json" />
               </Component>
-              <Component>
-                <File Source="publish/msi-staging/Primple.Core.dll" />
-              </Component>
-              <Component>
-                <File Source="publish/msi-staging/Primple.Infrastructure.dll" />
-              </Component>
+        $dllComponents
             </ComponentGroup>
             
             <Component Id="ApplicationShortcut" Directory="ApplicationProgramsFolder" Guid="8D3A4E1B-9F2C-6A8D-4E3B-7C9F4B5E8D3A">
