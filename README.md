@@ -1,4 +1,4 @@
-\# Primple
+# Primple
 
 Printing Simple.
 
@@ -8,9 +8,9 @@ More to come... writing isn't my favourite thing.
 
 
 
-\## License
+## License
 
-\*\*Source-Available License\*\* (Not Open Source)
+**Source-Available License** (Not Open Source)
 
 
 
@@ -20,13 +20,13 @@ You are welcome to view, modify, and fork the code.
 
 
 
-\*\*However, you may NOT:\*\*
+**However, you may NOT:**
 
-\* Sell this software.
+* Sell this software.
 
-\* Host it as a paid service (SaaS).
+* Host it as a paid service (SaaS).
 
-\* Distribute it as part of a commercial product without permission.
+* Distribute it as part of a commercial product without permission.
 
 
 
