@@ -74,8 +74,35 @@ public sealed partial class App : Application
 
     private static void LogFatalException(Exception? ex, string source)
     {
-        string message = $"A fatal error occurred ({source}): {ex?.Message}\n{ex?.StackTrace}";
-        // In a real app, log to file/EventViewer. Here we just ensure it doesn't pass silently.
-        MessageBox.Show(message, "Fatal Error - Primple", MessageBoxButton.OK, MessageBoxImage.Error);
+        // Log detailed error information to file for debugging
+        string detailedMessage = $"A fatal error occurred ({source}): {ex?.Message}\n{ex?.StackTrace}";
+        LogToFile(detailedMessage);
+        
+        // Show user-friendly message without sensitive details
+        string userMessage = "An unexpected error occurred and the application needs to close. " +
+                           "Error details have been logged for troubleshooting.";
+        MessageBox.Show(userMessage, "Fatal Error - Primple", MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+
+    private static void LogToFile(string message)
+    {
+        try
+        {
+            string logDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Primple",
+                "Logs");
+            
+            Directory.CreateDirectory(logDir);
+            
+            string logFile = Path.Combine(logDir, $"error_{DateTime.UtcNow:yyyyMMdd}.log");
+            string logEntry = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss UTC}] {message}\n\n";
+            
+            File.AppendAllText(logFile, logEntry);
+        }
+        catch
+        {
+            // Silently fail if logging fails to prevent recursive errors
+        }
     }
 }

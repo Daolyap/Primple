@@ -12,3 +12,15 @@ publish/
 # Test Results
 TestResults/
 *.trx
+
+# WiX Build Files
+*.wixobj
+*.wixpdb
+
+# Logs
+*.log
+
+# Temporary Files
+*.tmp
+*.temp
+

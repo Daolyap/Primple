@@ -12,17 +12,36 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Required for GitVersion
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
 
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v3.0.0
+      with:
+        versionSpec: '6.x'
+
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v3.0.0
+      with:
+        useConfigFile: true
+        configFilePath: GitVersion.yml
+
+    - name: Display Version
+      run: |
+        echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
+        echo "AssemblySemVer: ${{ steps.gitversion.outputs.assemblySemVer }}"
+
     - name: Restore dependencies
       run: dotnet restore Primple.slnx
 
     - name: Build
-      run: dotnet build Primple.slnx --no-restore
+      run: dotnet build Primple.slnx --no-restore --configuration Release /p:Version=${{ steps.gitversion.outputs.assemblySemVer }} /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} /p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }}
 
     - name: Test
-      run: dotnet test Primple.slnx --no-build --verbosity normal
+      run: dotnet test Primple.slnx --no-build --configuration Release --verbosity normal
