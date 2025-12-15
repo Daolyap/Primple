@@ -9,3 +9,4 @@ C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-win
 C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-windows\refint\Primple.Core.dll
 C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-windows\Primple.Core.pdb
 C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-windows\ref\Primple.Core.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Core\obj\Debug\net10.0-windows\Primple.Core.sourcelink.json
