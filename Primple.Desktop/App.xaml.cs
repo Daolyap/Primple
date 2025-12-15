@@ -1,15 +1,35 @@
 ﻿using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.IO;
 
 namespace Primple.Desktop;
 
-public partial class App : Application
+#pragma warning disable CA1515 // Application entry point is effectively public
+public sealed partial class App : Application
+#pragma warning restore CA1515
 {
     public static IHost? AppHost { get; private set; }
 
     public App()
     {
+        // Global Exception Handling
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            LogFatalException(e.ExceptionObject as Exception, "AppDomain.CurrentDomain.UnhandledException");
+
+        DispatcherUnhandledException += (s, e) =>
+        {
+            LogFatalException(e.Exception, "DispatcherUnhandledException");
+            e.Handled = true; // Prevent immediate crash if possible, though usually we should exit
+            Shutdown();
+        };
+
+        TaskScheduler.UnobservedTaskException += (s, e) =>
+        {
+            LogFatalException(e.Exception, "TaskScheduler.UnobservedTaskException");
+            e.SetObserved();
+        };
+
         AppHost = Host.CreateDefaultBuilder()
             .ConfigureServices((hostContext, services) =>
             {
@@ -20,17 +40,42 @@ public partial class App : Application
 
     protected override async void OnStartup(StartupEventArgs e)
     {
-        await AppHost!.StartAsync();
-
-        var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
-        startupForm.Show();
-
         base.OnStartup(e);
+
+        try
+        {
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
+            await AppHost!.StartAsync();
+#pragma warning restore CA2007
+
+            var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
+            startupForm.Show();
+        }
+#pragma warning disable CA1031 // Do not catch general exception types
+        catch (Exception ex)
+#pragma warning restore CA1031
+        {
+            LogFatalException(ex, "OnStartup");
+            Shutdown();
+        }
     }
 
     protected override async void OnExit(ExitEventArgs e)
     {
-        await AppHost!.StopAsync();
+        if (AppHost != null)
+        {
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
+            await AppHost.StopAsync();
+#pragma warning restore CA2007
+            AppHost.Dispose();
+        }
         base.OnExit(e);
+    }
+
+    private static void LogFatalException(Exception? ex, string source)
+    {
+        string message = $"A fatal error occurred ({source}): {ex?.Message}\n{ex?.StackTrace}";
+        // In a real app, log to file/EventViewer. Here we just ensure it doesn't pass silently.
+        MessageBox.Show(message, "Fatal Error - Primple", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 }

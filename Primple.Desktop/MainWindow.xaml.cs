@@ -14,7 +14,9 @@ namespace Primple.Desktop;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window
+#pragma warning disable CA1515 // UI classes are effectively public
+public sealed partial class MainWindow : Window
+#pragma warning restore CA1515
 {
     public MainWindow()
     {

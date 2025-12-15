@@ -1,0 +1,14 @@
+
+# Build Results
+[Bb]in/
+[Oo]bj/
+publish/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Test Results
+TestResults/
+*.trx

@@ -13,3 +13,4 @@ C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\n
 C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\refint\Primple.Infrastructure.dll
 C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\Primple.Infrastructure.pdb
 C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\ref\Primple.Infrastructure.dll
+C:\Users\Daolyap\Documents\Projects\STL Maker\Primple.Infrastructure\obj\Debug\net10.0-windows\Primple.Infrastructure.sourcelink.json
