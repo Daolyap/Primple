@@ -9,7 +9,7 @@ Total Issues Found: 4
 EXECUTIVE SUMMARY
 -----------------
 Critical: 0 | High: 0 | Medium: 1 | Low: 3
-Risk Score: 2.5/10
+**Risk Score**: 1.5/10 (Very Low)
 
 Most Critical Findings:
 1. Information Disclosure in Exception Handling

@@ -59,9 +59,11 @@ jobs:
           -p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }} `
           -o ./publish/portable
 
-    # Build MSI Installer
-    - name: Setup WiX Toolset
+    # Setup WiX Toolset
       run: |
+        # WiX Toolset and extensions are pinned to version 5.0.2 for reproducibility.
+        # WiX 5 is relatively new and may have breaking changes in future releases.
+        # If you need to update WiX, test the build thoroughly and update all related extension versions together.
         dotnet tool install --global wix --version 5.0.2
         wix extension add WixToolset.UI.wixext/5.0.2
         wix extension add WixToolset.Util.wixext/5.0.2
@@ -99,7 +101,12 @@ jobs:
         <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
           <Package Name="Primple" 
                    Version="$version"
-                   Manufacturer="Daolyap" 
+                   Manufacturer="Daolyap"
+                   <!--
+                     The UpgradeCode GUID below is intentionally hardcoded and must remain constant across all releases.
+                     Changing this value will prevent proper upgrade detection and break upgrade paths.
+                     DO NOT CHANGE THIS GUID.
+                   -->
                    UpgradeCode="7C9F4B5E-8D3A-4E1B-9F2C-6A8D4E3B7C9F"
                    Scope="perMachine"
                    Compressed="yes">
@@ -144,6 +151,10 @@ jobs:
         $dllComponents
             </ComponentGroup>
             
+            <!--
+              The GUID "8D3A4E1B-9F2C-6A8D-4E3B-7C9F4B5E8D3A" is a permanent identifier for the Start Menu shortcut component.
+              This GUID must remain constant across all releases to ensure correct installation, upgrade, and uninstallation behavior.
+            -->
             <Component Id="ApplicationShortcut" Directory="ApplicationProgramsFolder" Guid="8D3A4E1B-9F2C-6A8D-4E3B-7C9F4B5E8D3A">
               <Shortcut Id="ApplicationStartMenuShortcut"
                         Name="Primple"
@@ -197,6 +208,11 @@ jobs:
         prerelease: ${{ steps.gitversion.outputs.preReleaseTag != '' }}
 
     # Upload artifacts for manual releases and workflow_dispatch
+    # Artifacts are uploaded when:
+    # 1. Manually triggered via workflow_dispatch
+    # 2. Release events (created)
+    # 3. Pushes to non-main branches
+    # (Releases are created for main/master branch pushes instead)
     - name: Upload MSI Artifact
       if: github.event_name != 'push' || !(github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
       uses: actions/upload-artifact@v4
