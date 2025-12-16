@@ -20,30 +20,24 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Required for GitVersion
+        fetch-depth: 0
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
 
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v3.0.0
-      with:
-        versionSpec: '6.0.x'
-
     - name: Determine Version
-      id: gitversion
-      uses: gittools/actions/gitversion/execute@v3.0.0
-      with:
-        useConfigFile: true
-        configFilePath: GitVersion.yml
-
-    - name: Display Version
+      id: version
       run: |
-        echo "Version: ${{ steps.gitversion.outputs.semVer }}"
-        echo "AssemblySemVer: ${{ steps.gitversion.outputs.assemblySemVer }}"
-        echo "InformationalVersion: ${{ steps.gitversion.outputs.informationalVersion }}"
+        # Use run number for simple, incrementing version
+        $major = 1
+        $minor = 0
+        $patch = ${{ github.run_number }}
+        $version = "$major.$minor.$patch"
+        echo "version=$version" >> $env:GITHUB_OUTPUT
+        echo "semver=$version" >> $env:GITHUB_OUTPUT
+        echo "Version: $version"
 
     # Build Portable EXE (Single File)
     - name: Build Portable EXE
@@ -54,9 +48,9 @@ jobs:
           --self-contained true `
           -p:PublishSingleFile=true `
           -p:IncludeNativeLibrariesForSelfExtract=true `
-          -p:Version=${{ steps.gitversion.outputs.assemblySemVer }} `
-          -p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} `
-          -p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }} `
+          -p:Version=${{ steps.version.outputs.version }} `
+          -p:FileVersion=${{ steps.version.outputs.version }} `
+          -p:InformationalVersion=${{ steps.version.outputs.version }} `
           -o ./publish/portable
 
     # Setup WiX Toolset
@@ -74,14 +68,14 @@ jobs:
           -c Release `
           -r win-x64 `
           --self-contained false `
-          -p:Version=${{ steps.gitversion.outputs.assemblySemVer }} `
-          -p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} `
-          -p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }} `
+          -p:Version=${{ steps.version.outputs.version }} `
+          -p:FileVersion=${{ steps.version.outputs.version }} `
+          -p:InformationalVersion=${{ steps.version.outputs.version }} `
           -o ./publish/msi-staging
 
     - name: Create WiX Source File
       run: |
-        $version = "${{ steps.gitversion.outputs.majorMinorPatch }}"
+        $version = "${{ steps.version.outputs.version }}"
         
         # Get all DLL files from publish directory
         $dllFiles = Get-ChildItem -Path "publish/msi-staging" -Filter "*.dll" | Select-Object -ExpandProperty Name
@@ -177,22 +171,22 @@ jobs:
 
     - name: Build MSI
       run: |
-        wix build Primple.wxs -o ./publish/Primple-${{ steps.gitversion.outputs.semVer }}.msi -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext
+        wix build Primple.wxs -o ./publish/Primple-${{ steps.version.outputs.version }}.msi -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext
 
     # Package Portable EXE
     - name: Create Portable ZIP
       run: |
-        Compress-Archive -Path ./publish/portable/* -DestinationPath ./publish/Primple-Portable-${{ steps.gitversion.outputs.semVer }}.zip
+        Compress-Archive -Path ./publish/portable/* -DestinationPath ./publish/Primple-Portable-${{ steps.version.outputs.version }}.zip
 
     # Create GitHub Release (only on main branch pushes)
     - name: Create Release
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: v${{ steps.gitversion.outputs.semVer }}
-        name: Release v${{ steps.gitversion.outputs.semVer }}
+        tag_name: v${{ steps.version.outputs.version }}
+        name: Release v${{ steps.version.outputs.version }}
         body: |
-          ## Primple v${{ steps.gitversion.outputs.semVer }}
+          ## Primple v${{ steps.version.outputs.version }}
           
           ### Downloads
           - **MSI Installer**: For standard installation with shortcuts and uninstaller
@@ -202,10 +196,10 @@ jobs:
           Auto-generated release from commit ${{ github.sha }}
           
         files: |
-          ./publish/Primple-${{ steps.gitversion.outputs.semVer }}.msi
-          ./publish/Primple-Portable-${{ steps.gitversion.outputs.semVer }}.zip
+          ./publish/Primple-${{ steps.version.outputs.version }}.msi
+          ./publish/Primple-Portable-${{ steps.version.outputs.version }}.zip
         draft: false
-        prerelease: ${{ steps.gitversion.outputs.preReleaseTag != '' }}
+        prerelease: false
 
     # Upload artifacts for manual releases and workflow_dispatch
     # Artifacts are uploaded when:
@@ -218,11 +212,11 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Primple-MSI
-        path: ./publish/Primple-${{ steps.gitversion.outputs.semVer }}.msi
+        path: ./publish/Primple-${{ steps.version.outputs.version }}.msi
 
     - name: Upload Portable ZIP Artifact
       if: github.event_name != 'push' || !(github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
       uses: actions/upload-artifact@v4
       with:
         name: Primple-Portable
-        path: ./publish/Primple-Portable-${{ steps.gitversion.outputs.semVer }}.zip
+        path: ./publish/Primple-Portable-${{ steps.version.outputs.version }}.zip
