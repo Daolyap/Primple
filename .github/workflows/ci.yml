@@ -12,17 +12,30 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
 
+    - name: Determine Version
+      id: version
+      run: |
+        # Use run number for simple, incrementing version
+        $major = 1
+        $minor = 0
+        $patch = ${{ github.run_number }}
+        $version = "$major.$minor.$patch"
+        echo "version=$version" >> $env:GITHUB_OUTPUT
+        echo "Version: $version"
+
     - name: Restore dependencies
       run: dotnet restore Primple.slnx
 
     - name: Build
-      run: dotnet build Primple.slnx --no-restore
+      run: dotnet build Primple.slnx --no-restore --configuration Release /p:Version=${{ steps.version.outputs.version }} /p:FileVersion=${{ steps.version.outputs.version }} /p:InformationalVersion=${{ steps.version.outputs.version }}
 
     - name: Test
-      run: dotnet test Primple.slnx --no-build --verbosity normal
+      run: dotnet test Primple.slnx --no-build --configuration Release --verbosity normal

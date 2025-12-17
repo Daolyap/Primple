@@ -1,6 +1,12 @@
 name: Release
 
 on:
+  push:
+    branches: [ "main", "master" ]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
   release:
     types: [created]
   workflow_dispatch:
@@ -13,20 +19,204 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
 
-    - name: Publish Single File
-      run: dotnet publish Primple.Desktop/Primple.Desktop.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true -o ./publish
+    - name: Determine Version
+      id: version
+      run: |
+        # Use run number for simple, incrementing version
+        $major = 1
+        $minor = 0
+        $patch = ${{ github.run_number }}
+        $version = "$major.$minor.$patch"
+        echo "version=$version" >> $env:GITHUB_OUTPUT
+        echo "semver=$version" >> $env:GITHUB_OUTPUT
+        echo "Version: $version"
 
-    - name: Zip Release
-      run: Compress-Archive -Path ./publish/* -DestinationPath ./Primple_Windows_x64.zip
+    # Build Portable EXE (Single File)
+    - name: Build Portable EXE
+      run: |
+        dotnet publish Primple.Desktop/Primple.Desktop.csproj `
+          -c Release `
+          -r win-x64 `
+          --self-contained true `
+          -p:PublishSingleFile=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          -p:Version=${{ steps.version.outputs.version }} `
+          -p:FileVersion=${{ steps.version.outputs.version }} `
+          -p:InformationalVersion=${{ steps.version.outputs.version }} `
+          -o ./publish/portable
 
-    - name: Upload Release Asset
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
+    # Setup WiX Toolset
+      run: |
+        # WiX Toolset and extensions are pinned to version 5.0.2 for reproducibility.
+        # WiX 5 is relatively new and may have breaking changes in future releases.
+        # If you need to update WiX, test the build thoroughly and update all related extension versions together.
+        dotnet tool install --global wix --version 5.0.2
+        wix extension add WixToolset.UI.wixext/5.0.2
+        wix extension add WixToolset.Util.wixext/5.0.2
+
+    - name: Build for MSI
+      run: |
+        dotnet publish Primple.Desktop/Primple.Desktop.csproj `
+          -c Release `
+          -r win-x64 `
+          --self-contained false `
+          -p:Version=${{ steps.version.outputs.version }} `
+          -p:FileVersion=${{ steps.version.outputs.version }} `
+          -p:InformationalVersion=${{ steps.version.outputs.version }} `
+          -o ./publish/msi-staging
+
+    - name: Create WiX Source File
+      run: |
+        $version = "${{ steps.version.outputs.version }}"
+        
+        # Get all DLL files from publish directory
+        $dllFiles = Get-ChildItem -Path "publish/msi-staging" -Filter "*.dll" | Select-Object -ExpandProperty Name
+        
+        # Generate Component elements for each DLL
+        $dllComponents = ""
+        foreach ($dll in $dllFiles) {
+          $dllComponents += @"
+              <Component>
+                <File Source="publish/msi-staging/$dll" />
+              </Component>
+        "@
+        }
+        
+        $wxsContent = @"
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+          <Package Name="Primple" 
+                   Version="$version"
+                   Manufacturer="Daolyap"
+                   <!--
+                     The UpgradeCode GUID below is intentionally hardcoded and must remain constant across all releases.
+                     Changing this value will prevent proper upgrade detection and break upgrade paths.
+                     DO NOT CHANGE THIS GUID.
+                   -->
+                   UpgradeCode="7C9F4B5E-8D3A-4E1B-9F2C-6A8D4E3B7C9F"
+                   Scope="perMachine"
+                   Compressed="yes">
+            
+            <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+            
+            <MediaTemplate EmbedCab="yes" />
+            
+            <Feature Id="ProductFeature" Title="Primple" Level="1">
+              <ComponentGroupRef Id="ProductComponents" />
+              <ComponentRef Id="ApplicationShortcut" />
+            </Feature>
+            
+            <StandardDirectory Id="ProgramFiles6432Folder">
+              <Directory Id="INSTALLFOLDER" Name="Primple">
+                <Directory Id="BinFolder" Name="bin" />
+              </Directory>
+            </StandardDirectory>
+            
+            <StandardDirectory Id="ProgramMenuFolder">
+              <Directory Id="ApplicationProgramsFolder" Name="Primple"/>
+            </StandardDirectory>
+            
+            <ComponentGroup Id="ProductComponents" Directory="BinFolder">
+              <Component>
+                <File Source="publish/msi-staging/Primple.Desktop.exe" KeyPath="yes">
+                  <Shortcut Id="ApplicationDesktopShortcut"
+                            Directory="DesktopFolder"
+                            Name="Primple"
+                            WorkingDirectory="BinFolder"
+                            Icon="PrimpleIcon.exe"
+                            IconIndex="0"
+                            Advertise="yes" />
+                </File>
+              </Component>
+              <Component>
+                <File Source="publish/msi-staging/Primple.Desktop.dll" />
+              </Component>
+              <Component>
+                <File Source="publish/msi-staging/Primple.Desktop.runtimeconfig.json" />
+              </Component>
+        $dllComponents
+            </ComponentGroup>
+            
+            <!--
+              The GUID "8D3A4E1B-9F2C-6A8D-4E3B-7C9F4B5E8D3A" is a permanent identifier for the Start Menu shortcut component.
+              This GUID must remain constant across all releases to ensure correct installation, upgrade, and uninstallation behavior.
+            -->
+            <Component Id="ApplicationShortcut" Directory="ApplicationProgramsFolder" Guid="8D3A4E1B-9F2C-6A8D-4E3B-7C9F4B5E8D3A">
+              <Shortcut Id="ApplicationStartMenuShortcut"
+                        Name="Primple"
+                        Target="[BinFolder]Primple.Desktop.exe"
+                        WorkingDirectory="BinFolder"
+                        Icon="PrimpleIcon.exe"
+                        IconIndex="0" />
+              <RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall"/>
+              <RegistryValue Root="HKCU" Key="Software\Daolyap\Primple" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+            </Component>
+            
+            <Icon Id="PrimpleIcon.exe" SourceFile="publish/msi-staging/Primple.Desktop.exe"/>
+            
+            <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+            <UIRef Id="WixUI_InstallDir"/>
+          </Package>
+        </Wix>
+        "@
+        $wxsContent | Out-File -FilePath "Primple.wxs" -Encoding UTF8
+
+    - name: Build MSI
+      run: |
+        wix build Primple.wxs -o ./publish/Primple-${{ steps.version.outputs.version }}.msi -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext
+
+    # Package Portable EXE
+    - name: Create Portable ZIP
+      run: |
+        Compress-Archive -Path ./publish/portable/* -DestinationPath ./publish/Primple-Portable-${{ steps.version.outputs.version }}.zip
+
+    # Create GitHub Release (only on main branch pushes)
+    - name: Create Release
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      uses: softprops/action-gh-release@v2
       with:
-        files: Primple_Windows_x64.zip
+        tag_name: v${{ steps.version.outputs.version }}
+        name: Release v${{ steps.version.outputs.version }}
+        body: |
+          ## Primple v${{ steps.version.outputs.version }}
+          
+          ### Downloads
+          - **MSI Installer**: For standard installation with shortcuts and uninstaller
+          - **Portable ZIP**: Standalone executable, no installation required
+          
+          ### Changes
+          Auto-generated release from commit ${{ github.sha }}
+          
+        files: |
+          ./publish/Primple-${{ steps.version.outputs.version }}.msi
+          ./publish/Primple-Portable-${{ steps.version.outputs.version }}.zip
+        draft: false
+        prerelease: false
+
+    # Upload artifacts for manual releases and workflow_dispatch
+    # Artifacts are uploaded when:
+    # 1. Manually triggered via workflow_dispatch
+    # 2. Release events (created)
+    # 3. Pushes to non-main branches
+    # (Releases are created for main/master branch pushes instead)
+    - name: Upload MSI Artifact
+      if: github.event_name != 'push' || !(github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      uses: actions/upload-artifact@v4
+      with:
+        name: Primple-MSI
+        path: ./publish/Primple-${{ steps.version.outputs.version }}.msi
+
+    - name: Upload Portable ZIP Artifact
+      if: github.event_name != 'push' || !(github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      uses: actions/upload-artifact@v4
+      with:
+        name: Primple-Portable
+        path: ./publish/Primple-Portable-${{ steps.version.outputs.version }}.zip
