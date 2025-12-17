@@ -39,3 +39,23 @@ jobs:
 
     - name: Test
       run: dotnet test Primple.slnx --no-build --configuration Release --verbosity normal
+
+    - name: Publish Desktop Application
+      run: |
+        dotnet publish Primple.Desktop/Primple.Desktop.csproj `
+          -c Release `
+          -r win-x64 `
+          --self-contained true `
+          -p:PublishSingleFile=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          -p:Version=${{ steps.version.outputs.version }} `
+          -p:FileVersion=${{ steps.version.outputs.version }} `
+          -p:InformationalVersion=${{ steps.version.outputs.version }} `
+          -o ./publish/ci-build
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: Primple-CI-Build-${{ steps.version.outputs.version }}
+        path: ./publish/ci-build/Primple.Desktop.exe
+        retention-days: 30
