@@ -72,6 +72,8 @@ Choose your preferred format:
 - **MSI Installer**: Standard installation with Start Menu shortcuts
 - **Portable ZIP**: Single-file executable, no installation needed
 
+> **Note**: Automatic releases are created on every push to the main branch. For development builds from CI runs, check the [Actions tab](https://github.com/Daolyap/Primple/actions) and download artifacts from the latest CI workflow run.
+
 ### Requirements
 
 - Windows 10 or Windows 11

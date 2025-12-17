@@ -583,22 +583,34 @@ When implementing features, add these:
 
 ## Release Process
 
-### Manual Release
+### Automatic Releases (Recommended)
+
+**On every push to main branch**, GitHub Actions automatically:
+1. Builds the MSI installer with WiX
+2. Creates a portable EXE (single-file, self-contained)
+3. Packages the portable EXE as a ZIP file
+4. Creates a GitHub Release with auto-incrementing version (1.0.X)
+5. Uploads both MSI and ZIP to the release
+
+**No manual intervention required!**
+
+### Development Builds
+
+For CI runs (pull requests or non-main branches):
+- Build artifacts are uploaded to the Actions tab
+- Download from: Actions → Latest CI run → Artifacts section
+- Artifacts are retained for 30 days
+
+### Manual Release Trigger
+
+If needed, you can manually trigger a release:
+1. Go to Actions → Release workflow
+2. Click "Run workflow"
+3. Select branch and run
 
 ```bash
-# 1. Update version in GitVersion.yml if needed
-# 2. Commit changes
-git add .
-git commit -m "feat: Implement XYZ feature"
-
-# 3. Push to main
-git push origin main
-
-# 4. GitHub Actions automatically:
-#    - Builds MSI installer
-#    - Builds portable EXE
-#    - Creates GitHub release
-#    - Uploads artifacts
+# Or via command line:
+gh workflow run release.yml
 ```
 
 ### Version Numbering
