@@ -100,7 +100,9 @@ public sealed partial class App : Application
             
             File.AppendAllText(logFile, logEntry);
         }
+#pragma warning disable CA1031 // Do not catch general exception types
         catch (Exception logEx)
+#pragma warning restore CA1031
         {
             // Fallback logging to prevent silent failures, especially useful in debug builds
             #if DEBUG
