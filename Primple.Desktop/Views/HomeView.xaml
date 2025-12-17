@@ -1,0 +1,10 @@
+<UserControl x:Class="Primple.Desktop.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Text="Welcome to Primple" Foreground="White" FontSize="32" Margin="0,0,0,20"/>
+            <TextBlock Text="Select a tool to begin." Foreground="#AAFFFFFF" FontSize="16"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

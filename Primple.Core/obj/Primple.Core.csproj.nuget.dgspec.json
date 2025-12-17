@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Daolyap\\Documents\\Projects\\STL Maker\\Primple.Core\\Primple.Core.csproj": {}
+    "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple.Core\\Primple.Core.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Daolyap\\Documents\\Projects\\STL Maker\\Primple.Core\\Primple.Core.csproj": {
+    "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple.Core\\Primple.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Daolyap\\Documents\\Projects\\STL Maker\\Primple.Core\\Primple.Core.csproj",
+        "projectUniqueName": "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple.Core\\Primple.Core.csproj",
         "projectName": "Primple.Core",
-        "projectPath": "C:\\Users\\Daolyap\\Documents\\Projects\\STL Maker\\Primple.Core\\Primple.Core.csproj",
-        "packagesPath": "C:\\Users\\Daolyap\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Daolyap\\Documents\\Projects\\STL Maker\\Primple.Core\\obj\\",
+        "projectPath": "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple.Core\\Primple.Core.csproj",
+        "packagesPath": "C:\\Users\\Logan Heath\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple.Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Daolyap\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Logan Heath\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -25,8 +25,7 @@
           "net10.0-windows"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {}
         },
         "frameworks": {
           "net10.0-windows7.0": {
@@ -35,7 +34,6 @@
           }
         },
         "warningProperties": {
-          "allWarningsAsErrors": true,
           "warnAsError": [
             "NU1605"
           ]
@@ -50,6 +48,12 @@
       "frameworks": {
         "net10.0-windows7.0": {
           "targetAlias": "net10.0-windows",
+          "dependencies": {
+            "System.Drawing.Common": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

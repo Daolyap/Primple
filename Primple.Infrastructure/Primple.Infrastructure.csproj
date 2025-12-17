@@ -1,7 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <ItemGroup>
-    <ProjectReference Include="..\Primple.Core\Primple.Core.csproj" />
-  </ItemGroup>
-
-</Project>

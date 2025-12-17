@@ -1,0 +1,43 @@
+<UserControl x:Class="Primple.Desktop.Views.ImageTo3dView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Settings Panel -->
+        <Border Grid.Column="0" Margin="0,0,10,0" Style="{StaticResource GlassPanelStyle}" Padding="20">
+            <StackPanel>
+                <TextBlock Text="Image to 3D" FontSize="20" Foreground="White" Margin="0,0,0,20"/>
+                
+                <Button Content="Upload Image" Style="{StaticResource GlassButtonStyle}" Margin="0,0,0,20"/>
+                
+                <TextBlock Text="Settings" Foreground="#AAFFFFFF" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                
+                <TextBlock Text="Height Scale" Foreground="#DDFFFFFF" Margin="0,5"/>
+                <Slider Maximum="100" Minimum="1" Value="10" Margin="0,0,0,15"/>
+                
+                <TextBlock Text="Smoothing" Foreground="#DDFFFFFF" Margin="0,5"/>
+                <Slider Maximum="10" Minimum="0" Value="1" Margin="0,0,0,15"/>
+                
+                <CheckBox Content="Invert (Lithophane)" Foreground="White" Margin="0,0,0,20"/>
+                
+                <Button Content="Generate Mesh" Style="{StaticResource GlassButtonStyle}" Background="{StaticResource AccentColor}" BorderThickness="0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Preview Area -->
+        <Border Grid.Column="1" Style="{StaticResource GlassPanelStyle}">
+            <Grid>
+                <TextBlock Text="Preview Area" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#44FFFFFF"/>
+                <!-- 3D Viewport would go here, maybe reuse logic -->
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
