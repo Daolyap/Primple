@@ -40,6 +40,8 @@ public class NominatimResult
     public string? Lon { get; set; }
     [JsonPropertyName("display_name")]
     public string? DisplayName { get; set; }
+    [JsonPropertyName("boundingbox")]
+    public List<string>? BoundingBox { get; set; }
 }
 
 public class MapsService : IMapsService
@@ -51,16 +53,16 @@ public class MapsService : IMapsService
         _client.DefaultRequestHeaders.Add("User-Agent", "PrimpleApp/1.0");
     }
 
-    public async Task<(double lat, double lon, string name)> SearchLocation(string query)
+    public async Task<(double lat, double lon, string name, double[]? boundingBox)> SearchLocation(string query)
     {
         try
         {
             string url = $"https://nominatim.openstreetmap.org/search?q={Uri.EscapeDataString(query)}&format=json&limit=1";
             var response = await _client.GetAsync(url);
-            if (!response.IsSuccessStatusCode) return (0, 0, null);
+            if (!response.IsSuccessStatusCode) return (0, 0, null, null);
 
             var json = await response.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(json) || !json.Trim().StartsWith("[")) return (0, 0, null);
+            if (string.IsNullOrWhiteSpace(json) || !json.Trim().StartsWith("[")) return (0, 0, null, null);
 
             var results = JsonSerializer.Deserialize<List<NominatimResult>>(json);
             
@@ -69,12 +71,17 @@ public class MapsService : IMapsService
                 var first = results[0];
                 if (double.TryParse(first.Lat, out double lat) && double.TryParse(first.Lon, out double lon))
                 {
-                    return (lat, lon, first.DisplayName);
+                    double[]? bbox = null;
+                    if (first.BoundingBox != null && first.BoundingBox.Count == 4)
+                    {
+                        bbox = first.BoundingBox.Select(s => double.TryParse(s, out double d) ? d : 0).ToArray();
+                    }
+                    return (lat, lon, first.DisplayName, bbox);
                 }
             }
         }
         catch { }
-        return (0, 0, null);
+        return (0, 0, null, null);
     }
 
     public async Task<Model3DGroup> GenerateMapModel(MapGenerationOptions options)
@@ -134,8 +141,19 @@ public class MapsService : IMapsService
         }
         
         // Base Color acts as "Water"/Ground
-        var baseMat = new DiffuseMaterial(new SolidColorBrush(options.BaseColor)); 
-        group.Children.Add(new GeometryModel3D(baseMesh, baseMat));
+        var baseBrush = new SolidColorBrush(options.BaseColor);
+        var baseMat = new MaterialGroup();
+        baseMat.Children.Add(new DiffuseMaterial(baseBrush));
+        
+        // Add a slight specular component so black or dark colors remain visible under light
+        if (options.BaseColor.R < 30 && options.BaseColor.G < 30 && options.BaseColor.B < 30)
+        {
+            baseMat.Children.Add(new SpecularMaterial(new SolidColorBrush(Color.FromRgb(40, 40, 40)), 10));
+        }
+        
+        var baseModel = new GeometryModel3D(baseMesh, baseMat);
+        baseModel.BackMaterial = baseMat;
+        group.Children.Add(baseModel);
 
         if (data == null || data.Elements == null) return group;
 
@@ -275,13 +293,17 @@ public class MapsService : IMapsService
         if (buildingMesh.Positions.Count > 0)
         {
              var buildingMat = new DiffuseMaterial(new SolidColorBrush(options.BuildingColor));
-             group.Children.Add(new GeometryModel3D(buildingMesh, buildingMat));
+             var model = new GeometryModel3D(buildingMesh, buildingMat);
+             model.BackMaterial = buildingMat; // Same color on both sides
+             group.Children.Add(model);
         }
 
         if (roadMesh.Positions.Count > 0)
         {
              var roadMat = new DiffuseMaterial(new SolidColorBrush(options.RoadColor));
-             group.Children.Add(new GeometryModel3D(roadMesh, roadMat));
+             var model = new GeometryModel3D(roadMesh, roadMat);
+             model.BackMaterial = roadMat;
+             group.Children.Add(model);
         }
 
         return group;

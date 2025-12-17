@@ -43,21 +43,46 @@ public partial class TemplatesView : UserControl
         StatusText.Text = $"Created {name}! Switch to 'STL Editor' to view/edit.";
     }
 
-    private void Cube_Click(object sender, RoutedEventArgs e)
+    private void Template_Click(object sender, RoutedEventArgs e)
     {
-        var mesh = _templateService.CreateCube(5);
-        GenerateAndSet(mesh, "Cube");
-    }
+        if (sender is Button btn && btn.Tag is string tag)
+        {
+            var mainWindow = Window.GetWindow(this) as MainWindow;
+            if (mainWindow == null) return;
 
-    private void Sphere_Click(object sender, RoutedEventArgs e)
-    {
-        var mesh = _templateService.CreateSphere(2.5);
-        GenerateAndSet(mesh, "Sphere");
-    }
-
-    private void Cylinder_Click(object sender, RoutedEventArgs e)
-    {
-        var mesh = _templateService.CreateCylinder(2.5, 5);
-        GenerateAndSet(mesh, "Cylinder");
+            switch (tag)
+            {
+                case "EiffelTower":
+                    var mapsView = mainWindow.GetView("Maps") as MapsView;
+                    if (mapsView != null)
+                    {
+                        mapsView.SetLocation(48.8584, 2.2945, "Eiffel Tower, Paris", 300);
+                        mainWindow.Navigate("Maps");
+                    }
+                    break;
+                case "TimesSquare":
+                    var mapsView2 = mainWindow.GetView("Maps") as MapsView;
+                    if (mapsView2 != null)
+                    {
+                        mapsView2.SetLocation(40.7580, -73.9855, "Times Square, NYC", 400);
+                        mainWindow.Navigate("Maps");
+                    }
+                    break;
+                case "Colosseum":
+                    var mapsView3 = mainWindow.GetView("Maps") as MapsView;
+                    if (mapsView3 != null)
+                    {
+                        mapsView3.SetLocation(41.8902, 12.4922, "Colosseum, Rome", 250);
+                        mainWindow.Navigate("Maps");
+                    }
+                    break;
+                case "Logo3D":
+                    mainWindow.Navigate("ImageTo3d");
+                    break;
+                case "HeightmapArt":
+                    mainWindow.Navigate("ImageTo3d");
+                    break;
+            }
+        }
     }
 }

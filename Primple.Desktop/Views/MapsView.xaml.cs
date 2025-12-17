@@ -15,6 +15,17 @@ public partial class MapsView : UserControl
     private bool _hasLocation;
     private Model3DGroup? _currentModel;
 
+    public void SetLocation(double lat, double lon, string name, double radius)
+    {
+        _currentLat = lat;
+        _currentLon = lon;
+        _hasLocation = true;
+        LocationText.Text = name;
+        SearchBox.Text = name;
+        RadiusSlider.Value = radius;
+        StatusText.Text = "Template parameters loaded.";
+    }
+
     public MapsView()
     {
         InitializeComponent();
@@ -45,7 +56,7 @@ public partial class MapsView : UserControl
             if (App.AppHost != null)
             {
                 var mapsService = App.AppHost.Services.GetRequiredService<IMapsService>();
-                var (lat, lon, name) = await mapsService.SearchLocation(query);
+                var (lat, lon, name, bbox) = await mapsService.SearchLocation(query);
                 
                 if (name != null)
                 {
@@ -53,7 +64,24 @@ public partial class MapsView : UserControl
                     _currentLon = lon;
                     _hasLocation = true;
                     LocationText.Text = name;
-                    StatusText.Text = "Location found.";
+                    
+                    // Auto-calculate suggested radius if bounding box is available
+                    if (bbox != null && bbox.Length == 4)
+                    {
+                        // bbox: [minlat, maxlat, minlon, maxlon]
+                        double latDiff = Math.Abs(bbox[1] - bbox[0]);
+                        double lonDiff = Math.Abs(bbox[3] - bbox[2]);
+                        
+                        // Approx meters per degree at equator
+                        double latMeters = latDiff * 111320;
+                        double lonMeters = lonDiff * 111320 * Math.Cos(lat * Math.PI / 180);
+                        
+                        // Suggest radius as half of the larger dimension, clamped to slider range
+                        double suggestedRadius = Math.Max(latMeters, lonMeters) / 2.0;
+                        RadiusSlider.Value = Math.Clamp(suggestedRadius, RadiusSlider.Minimum, RadiusSlider.Maximum);
+                    }
+                    
+                    StatusText.Text = "Location found & parameters auto-set.";
                 }
                 else
                 {

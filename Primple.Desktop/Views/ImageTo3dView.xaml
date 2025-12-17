@@ -47,7 +47,7 @@
                 <TextBlock x:Name="StatusText" Text="Ready" Foreground="#88FFFFFF" TextWrapping="Wrap" Margin="0,0,0,10"/>
                 
                 <Button Content="Generate Mesh" Style="{StaticResource GlassButtonStyle}" Background="{StaticResource AccentBrush}" BorderThickness="0" Click="Generate_Click" Margin="0,0,0,10"/>
-                <Button Content="Send to Editor" Style="{StaticResource GlassButtonStyle}" Click="SendToEditor_Click"/>
+                <Button Content="Export As STL" Style="{StaticResource GlassButtonStyle}" Click="ExportButton_Click"/>
             </StackPanel>
         </Border>
 

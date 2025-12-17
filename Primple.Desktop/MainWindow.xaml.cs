@@ -23,7 +23,7 @@ public partial class MainWindow : Window
         SetupNavigation();
     }
 
-    private void Navigate(string viewTag)
+    public void Navigate(string viewTag)
     {
         try
         {
@@ -39,6 +39,12 @@ public partial class MainWindow : Window
         {
             MessageBox.Show($"Error loading view '{viewTag}': {ex.Message}");
         }
+    }
+
+    public UserControl? GetView(string tag)
+    {
+        _views.TryGetValue(tag, out var view);
+        return view;
     }
 
     private void SetupNavigation()

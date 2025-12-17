@@ -17,7 +17,11 @@ public class HeightmapService : IHeightmapService
             throw new PlatformNotSupportedException("Heightmap generation is only supported on Windows.");
 
         using var bitmap = new Bitmap(imagePath);
-        using var resized = new Bitmap(bitmap, new Size(resolution, resolution));
+        
+        // Respect aspect ratio
+        int targetWidth = resolution;
+        int targetHeight = (int)((double)bitmap.Height / bitmap.Width * resolution);
+        using var resized = new Bitmap(bitmap, new Size(targetWidth, targetHeight));
 
         var mesh = new MeshGeometry3D();
         int width = resized.Width;

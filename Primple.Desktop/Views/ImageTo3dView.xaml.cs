@@ -93,24 +93,65 @@ public partial class ImageTo3dView : UserControl
         return new DiffuseMaterial(new SolidColorBrush(Color.FromRgb(r, g, b)));
     }
 
-    private void SendToEditor_Click(object sender, RoutedEventArgs e)
+    private void ExportButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_currentGeometry == null)
+        if (_currentGeometry == null || _currentGeometry.Geometry is not MeshGeometry3D mesh)
         {
             MessageBox.Show("Generate a mesh first.");
             return;
         }
 
-        if (App.AppHost != null)
+        try
         {
-            var projectState = App.AppHost.Services.GetRequiredService<IProjectState>();
-            var group = new Model3DGroup();
-            group.Children.Add(_currentGeometry);
-            
-            projectState.UpdateModel(group);
-            projectState.CurrentProjectName = "Image3D_" + Path.GetFileNameWithoutExtension(_currentImagePath);
-            
-            MessageBox.Show("Model sent to STL Editor.", "Success");
+            var dialog = new SaveFileDialog
+            {
+                Filter = "STL Files (*.stl)|*.stl",
+                DefaultExt = ".stl",
+                FileName = $"Image3D_{Path.GetFileNameWithoutExtension(_currentImagePath)}.stl"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                StatusText.Text = "Exporting STL...";
+                ExportMeshToSTL(mesh, dialog.FileName);
+                StatusText.Text = "Exported!";
+                MessageBox.Show($"Model exported successfully to:\n{dialog.FileName}", "Export Complete");
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "Export Error: " + ex.Message;
+        }
+    }
+
+    private void ExportMeshToSTL(MeshGeometry3D mesh, string fileName)
+    {
+        using (var writer = new StreamWriter(fileName))
+        {
+            writer.WriteLine("solid image_export");
+
+            for (int i = 0; i < mesh.TriangleIndices.Count; i += 3)
+            {
+                var p1 = mesh.Positions[mesh.TriangleIndices[i]];
+                var p2 = mesh.Positions[mesh.TriangleIndices[i + 1]];
+                var p3 = mesh.Positions[mesh.TriangleIndices[i + 2]];
+
+                // Calculate normal
+                var v1 = new Vector3D(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
+                var v2 = new Vector3D(p3.X - p1.X, p3.Y - p1.Y, p3.Z - p1.Z);
+                var normal = Vector3D.CrossProduct(v1, v2);
+                normal.Normalize();
+
+                writer.WriteLine($"  facet normal {normal.X:F6} {normal.Y:F6} {normal.Z:F6}");
+                writer.WriteLine("    outer loop");
+                writer.WriteLine($"      vertex {p1.X:F6} {p1.Y:F6} {p1.Z:F6}");
+                writer.WriteLine($"      vertex {p2.X:F6} {p2.Y:F6} {p2.Z:F6}");
+                writer.WriteLine($"      vertex {p3.X:F6} {p3.Y:F6} {p3.Z:F6}");
+                writer.WriteLine("    endloop");
+                writer.WriteLine("  endfacet");
+            }
+
+            writer.WriteLine("endsolid image_export");
         }
     }
 }
