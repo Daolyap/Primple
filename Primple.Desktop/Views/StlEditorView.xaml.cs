@@ -115,6 +115,24 @@ public partial class StlEditorView : UserControl
         }
     }
 
+    private void Transform_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (modelContainer != null)
+        {
+            var group = new Transform3DGroup();
+            
+            // Scale
+            double s = ScaleSlider.Value;
+            group.Children.Add(new ScaleTransform3D(s, s, s));
+            
+            // Rotate Y
+            double ry = RotateYSlider.Value;
+            group.Children.Add(new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 1, 0), ry)));
+            
+            modelContainer.Transform = group;
+        }
+    }
+
     private void SaveProject_Click(object sender, RoutedEventArgs e)
     {
         if (modelContainer.Children.Count == 0 || (modelContainer.Content as Model3DGroup)?.Children.Count == 0)

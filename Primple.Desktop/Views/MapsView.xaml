@@ -1,7 +1,77 @@
 <UserControl x:Class="Primple.Desktop.Views.MapsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:helix="http://helix-toolkit.org/wpf"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
     <Grid>
-        <TextBlock Text="Maps to 3D (Coming Soon)" Foreground="White" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Controls Sidebar -->
+        <Border Grid.Column="0" Background="#10FFFFFF" BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="0,0,1,0" Padding="20">
+            <StackPanel>
+                <TextBlock Text="Map to STL" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,0,0,20"/>
+                
+                <!-- Search -->
+                <TextBlock Text="Location" Foreground="#AAAAAA" Margin="0,0,0,5"/>
+                <Grid Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="SearchBox" Style="{StaticResource GlassTextBoxStyle}" Height="35" VerticalContentAlignment="Center" KeyDown="SearchBox_KeyDown"/>
+                    <Button Grid.Column="1" Content="Go" Width="40" Margin="5,0,0,0" Style="{StaticResource GlassButtonStyle}" Click="SearchButton_Click"/>
+                </Grid>
+                
+                <TextBlock x:Name="LocationText" Text="No location selected" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,20"/>
+
+                <!-- Radius -->
+                <TextBlock Text="Area Size (Radius)" Foreground="#AAAAAA" Margin="0,0,0,5"/>
+                <DockPanel Margin="0,0,0,15">
+                    <TextBox Text="{Binding ElementName=RadiusSlider, Path=Value, StringFormat=N0}" Width="50" DockPanel.Dock="Right" Margin="5,0,0,0" Background="#22FFFFFF" Foreground="White" BorderThickness="0" Padding="2" VerticalAlignment="Center"/>
+                    <TextBlock Text="m" Foreground="#AAAAAA" DockPanel.Dock="Right" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                    <Slider x:Name="RadiusSlider" Minimum="100" Maximum="2000" Value="500" TickFrequency="100" IsSnapToTickEnabled="True"/>
+                </DockPanel>
+
+                <!-- Mode -->
+                <TextBlock Text="Mode" Foreground="#AAAAAA" Margin="0,0,0,5"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                    <RadioButton x:Name="Mode2D" Content="2D (Relief)" IsChecked="True" Foreground="White" Margin="0,0,15,0"/>
+                    <RadioButton x:Name="Mode3D" Content="3D (Extruded)" Foreground="White"/>
+                </StackPanel>
+
+                <!-- Layers -->
+                <TextBlock Text="Layers" Foreground="#AAAAAA" Margin="0,0,0,5"/>
+                <CheckBox x:Name="CheckBuildings" Content="Buildings" IsChecked="True" Foreground="White" Margin="0,5,0,0"/>
+                <CheckBox x:Name="CheckRoads" Content="Roads" IsChecked="True" Foreground="White" Margin="0,5,0,0"/>
+                <CheckBox x:Name="CheckWater" Content="Water" IsChecked="False" Foreground="White" Margin="0,5,0,15" ToolTip="Water is usually the base plane."/>
+
+                <Button Content="Generate Preview" Height="40" Style="{StaticResource GlassButtonStyle}" Margin="0,10,0,10" Click="GenerateButton_Click"/>
+                <Button Content="Send to Editor" Height="40" Style="{StaticResource GlassButtonStyle}" Background="{StaticResource AccentBrush}" Click="SendToEditor_Click"/>
+                
+                <TextBlock x:Name="StatusText" Text="" Foreground="#88FFFFFF" TextWrapping="Wrap" Margin="0,10,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Preview -->
+        <Border Grid.Column="1" Margin="20" Style="{StaticResource GlassPanelStyle}">
+            <helix:HelixViewport3D x:Name="viewport" ShowCoordinateSystem="True" Background="Transparent">
+                <helix:DefaultLights/>
+                <ModelVisual3D x:Name="previewVisual"/>
+            </helix:HelixViewport3D>
+        </Border>
+        
+        <!-- Loading Overlay -->
+        <Grid x:Name="LoadingOverlay" Grid.ColumnSpan="2" Background="#80000000" Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Loading Map Data..." Foreground="White" FontSize="18" HorizontalAlignment="Center"/>
+                <ProgressBar IsIndeterminate="True" Width="200" Height="4" Margin="0,10,0,0"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

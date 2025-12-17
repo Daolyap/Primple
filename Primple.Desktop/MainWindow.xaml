@@ -11,7 +11,7 @@
         <WindowChrome GlassFrameThickness="-1" CornerRadius="0" CaptionHeight="40" ResizeBorderThickness="4"/>
     </WindowChrome.WindowChrome>
 
-    <Border Background="{StaticResource AppBackgroundBrush}" BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="1">
+    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="250"/>
@@ -19,7 +19,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- Sidebar -->
-            <Border Grid.Column="0" BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="0,0,1,0" Background="#10FFFFFF">
+            <Border Grid.Column="0" BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="0,0,1,0" Background="#10FFFFFF">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="80"/>
@@ -28,17 +28,17 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Border Width="32" Height="32" Background="{StaticResource AccentBrush}" CornerRadius="16" Margin="0,0,12,0"/>
+                        <Image Source="/Assets/logo.png" Width="32" Height="32" Margin="0,0,12,0"/>
                         <TextBlock Text="Primple" Foreground="White" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="1" Margin="15,20">
                         <TextBlock Text="TOOLS" Foreground="#88FFFFFF" FontSize="10" FontWeight="Bold" Margin="10,0,0,10"/>
-                        <RadioButton Style="{StaticResource NavButtonStyle}" IsChecked="True" Content="Home" Tag="Home"/>
-                        <RadioButton Style="{StaticResource NavButtonStyle}" Content="STL Editor" Tag="Editor"/>
-                        <RadioButton Style="{StaticResource NavButtonStyle}" Content="Map to 3D" Tag="Maps"/>
-                        <RadioButton Style="{StaticResource NavButtonStyle}" Content="Image to 3D" Tag="Image"/>
-                        <RadioButton Style="{StaticResource NavButtonStyle}" Content="Templates" Tag="Templates"/>
+                        <RadioButton Style="{DynamicResource NavButtonStyle}" IsChecked="True" Content="Home" Tag="Home"/>
+                        <RadioButton Style="{DynamicResource NavButtonStyle}" Content="STL Editor" Tag="Editor"/>
+                        <RadioButton Style="{DynamicResource NavButtonStyle}" Content="Map to 3D" Tag="Maps"/>
+                        <RadioButton Style="{DynamicResource NavButtonStyle}" Content="Image to 3D" Tag="Image"/>
+                        <RadioButton Style="{DynamicResource NavButtonStyle}" Content="Templates" Tag="Templates"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="2" Margin="20">

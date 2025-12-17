@@ -1,3 +1,7 @@
+---
+description: Building 
+---
+
 # How to Build, Run, and Publish Primple
 
 Here are the essential commands to manage the Primple Desktop application.

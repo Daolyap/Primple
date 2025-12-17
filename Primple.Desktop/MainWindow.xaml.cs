@@ -6,27 +6,40 @@ namespace Primple.Desktop;
 
 public partial class MainWindow : Window
 {
-    private readonly Dictionary<string, Func<UserControl>> _viewFactories;
+
     private readonly Dictionary<string, UserControl> _views = new Dictionary<string, UserControl>();
 
     public MainWindow()
     {
         InitializeComponent();
         
-        // Initialize view factories (Lazy loading)
-        _viewFactories = new Dictionary<string, Func<UserControl>>
-        {
-            { "Home", () => new Views.HomeView() },
-            { "Editor", () => new Views.StlEditorView() },
-            { "Maps", () => new Views.MapsView() },
-            { "Image", () => new Views.ImageTo3dView() },
-            { "Templates", () => new Views.TemplatesView() }
-        };
+        // Setup Navigation
+        _views.Add("Home", new Views.HomeView());
+        _views.Add("StlEditor", new Views.StlEditorView());
+        _views.Add("Maps", new Views.MapsView());
+        _views.Add("ImageTo3d", new Views.ImageTo3dView());
+        _views.Add("Templates", new Views.TemplatesView());
 
-        // Navigate to Home by default
-        NavigateTo("Home");
-        
+        Navigate("Home");
         SetupNavigation();
+    }
+
+    private void Navigate(string viewTag)
+    {
+        try
+        {
+            if (_views.TryGetValue(viewTag, out var view))
+            {
+                if (MainContent != null)
+                {
+                    MainContent.Content = view;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error loading view '{viewTag}': {ex.Message}");
+        }
     }
 
     private void SetupNavigation()
@@ -39,38 +52,11 @@ public partial class MainWindow : Window
                 {
                     if (sender is RadioButton btn && btn.Tag is string tag)
                     {
-                        NavigateTo(tag);
+                        Navigate(tag);
                     }
                 };
             }
         };
-    }
-
-    private void NavigateTo(string viewTag)
-    {
-        try
-        {
-            UserControl? view = null;
-
-            if (_views.TryGetValue(viewTag, out var existingView))
-            {
-                view = existingView;
-            }
-            else if (_viewFactories.TryGetValue(viewTag, out var factory))
-            {
-                view = factory();
-                _views[viewTag] = view;
-            }
-
-            if (view != null && MainContent != null)
-            {
-                MainContent.Content = view;
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Error loading view '{viewTag}': {ex.Message}", "Navigation Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
     }
 
     private static IEnumerable<T> FindVisualChildren<T>(DependencyObject depObj) where T : DependencyObject

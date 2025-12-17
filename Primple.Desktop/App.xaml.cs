@@ -18,7 +18,7 @@ public partial class App : Application
                 
                 // Core Services
                 services.AddSingleton<Primple.Core.Services.IStlService, Primple.Core.Services.StlService>();
-                services.AddSingleton<Primple.Core.Services.IMapsService, Primple.Core.Services.MapsService>();
+                services.AddSingleton<Primple.Core.Services.IMapsService, Primple.Desktop.Services.MapsService>();
                 services.AddSingleton<Primple.Core.Services.IImageService, Primple.Core.Services.ImageService>();
                 services.AddSingleton<Primple.Core.Services.IHeightmapService, Primple.Core.Services.HeightmapService>();
                 services.AddSingleton<Primple.Desktop.Services.ITemplateService, Primple.Desktop.Services.TemplateService>();

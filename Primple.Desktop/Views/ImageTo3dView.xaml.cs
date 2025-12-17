@@ -1,86 +1,117 @@
+
+using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using Microsoft.Win32;
-using HelixToolkit.Wpf;
 using Primple.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
+using HelixToolkit.Wpf;
 
 namespace Primple.Desktop.Views;
 
 public partial class ImageTo3dView : UserControl
 {
-    private string? _selectedImagePath;
-    private readonly IHeightmapService _heightmapService;
+    private string _currentImagePath = "";
+    private GeometryModel3D? _currentGeometry;
 
     public ImageTo3dView()
     {
         InitializeComponent();
-        if (App.AppHost != null)
-        {
-            _heightmapService = App.AppHost.Services.GetRequiredService<IHeightmapService>();
-        }
-        else
-        {
-            // Fallback for design time or error
-             _heightmapService = new HeightmapService();
-        }
     }
 
     private void SelectImage_Click(object sender, RoutedEventArgs e)
     {
-        var openFileDialog = new OpenFileDialog
+        var dlg = new OpenFileDialog { Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp" };
+        if (dlg.ShowDialog() == true)
         {
-            Filter = "Images (*.png;*.jpg;*.bmp)|*.png;*.jpg;*.bmp|All Files (*.*)|*.*",
-            Title = "Select Image"
-        };
-
-        if (openFileDialog.ShowDialog() == true)
-        {
-            _selectedImagePath = openFileDialog.FileName;
-            StatusText.Text = $"Selected: {System.IO.Path.GetFileName(_selectedImagePath)}";
+            _currentImagePath = dlg.FileName;
+            StatusText.Text = Path.GetFileName(_currentImagePath);
         }
     }
 
     private void Settings_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        // Optional: Auto-update or just wait for Generate button
+        // No auto-update to avoid lag
     }
 
     private void Generate_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(_selectedImagePath))
+        if (string.IsNullOrEmpty(_currentImagePath))
         {
-            MessageBox.Show("Please select an image first.", "Primple Info", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
+             MessageBox.Show("Select an image first.");
+             return;
         }
 
         try
         {
-            StatusText.Text = "Generating mesh...";
-            
-            double scale = HeightSlider.Value;
-            int resolution = (int)ResolutionSlider.Value;
+            StatusText.Text = "Generating...";
+            if (App.AppHost != null)
+            {
+                var service = App.AppHost.Services.GetRequiredService<IHeightmapService>();
+                var mesh = service.GenerateHeightmap(_currentImagePath, HeightSlider.Value, (int)ResolutionSlider.Value);
+                
+                var material = GetCurrentMaterial();
+                _currentGeometry = new GeometryModel3D(mesh, material);
+                _currentGeometry.BackMaterial = material; 
 
-            var mesh = _heightmapService.GenerateHeightmap(_selectedImagePath, scale, resolution);
-
-            var material = new DiffuseMaterial(new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 100, 0))); // Orange-ish
-            var model = new GeometryModel3D(mesh, material);
-            model.BackMaterial = material;
-
-            var visual = new ModelVisual3D();
-            visual.Content = model;
-
-            modelContainer.Children.Clear();
-            modelContainer.Children.Add(visual);
-            
-            viewport.ZoomExtents();
-            StatusText.Text = "Mesh generated successfully.";
+                var group = new Model3DGroup();
+                group.Children.Add(_currentGeometry);
+                
+                var visual = new ModelVisual3D { Content = group };
+                modelContainer.Children.Clear();
+                modelContainer.Children.Add(visual);
+                
+                viewport.ZoomExtents();
+                StatusText.Text = "Generated!";
+            }
         }
         catch (Exception ex)
         {
-             MessageBox.Show($"Error generating mesh: {ex.Message}", "Generation Error", MessageBoxButton.OK, MessageBoxImage.Error);
-             StatusText.Text = "Error";
+            StatusText.Text = "Error: " + ex.Message;
+        }
+    }
+
+    private void Color_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_currentGeometry != null)
+        {
+            var mat = GetCurrentMaterial();
+            _currentGeometry.Material = mat;
+            _currentGeometry.BackMaterial = mat;
+        }
+    }
+
+    private Material GetCurrentMaterial()
+    {
+        // Safe access to sliders. If not initialized, default to 200.
+        byte r = (byte)(SliderR?.Value ?? 200);
+        byte g = (byte)(SliderG?.Value ?? 200);
+        byte b = (byte)(SliderB?.Value ?? 200);
+        return new DiffuseMaterial(new SolidColorBrush(Color.FromRgb(r, g, b)));
+    }
+
+    private void SendToEditor_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentGeometry == null)
+        {
+            MessageBox.Show("Generate a mesh first.");
+            return;
+        }
+
+        if (App.AppHost != null)
+        {
+            var projectState = App.AppHost.Services.GetRequiredService<IProjectState>();
+            var group = new Model3DGroup();
+            group.Children.Add(_currentGeometry);
+            
+            projectState.UpdateModel(group);
+            projectState.CurrentProjectName = "Image3D_" + Path.GetFileNameWithoutExtension(_currentImagePath);
+            
+            MessageBox.Show("Model sent to STL Editor.", "Success");
         }
     }
 }
+
