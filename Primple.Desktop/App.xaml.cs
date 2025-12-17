@@ -100,7 +100,15 @@ public sealed partial class App : Application
             
             File.AppendAllText(logFile, logEntry);
         }
+#pragma warning disable CA1031 // Do not catch general exception types
+#if !DEBUG
+#pragma warning disable CS0168 // Variable is declared but never used
+#endif
         catch (Exception logEx)
+#pragma warning restore CA1031
+#if !DEBUG
+#pragma warning restore CS0168
+#endif
         {
             // Fallback logging to prevent silent failures, especially useful in debug builds
             #if DEBUG
