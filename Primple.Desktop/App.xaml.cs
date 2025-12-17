@@ -100,9 +100,16 @@ public sealed partial class App : Application
             
             File.AppendAllText(logFile, logEntry);
         }
-        catch
+        catch (Exception logEx)
         {
-            // Silently fail if logging fails to prevent recursive errors
+            // Fallback logging to prevent silent failures, especially useful in debug builds
+            #if DEBUG
+            System.Diagnostics.Debug.WriteLine($"Failed to write to log file: {logEx.Message}");
+            System.Diagnostics.Debug.WriteLine($"Original error: {message}");
+            #endif
+            
+            // In production, silently fail to prevent recursive errors
+            // Consider logging to Windows Event Log as a future enhancement
         }
     }
 }
