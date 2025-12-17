@@ -1,0 +1,16 @@
+  Determining projects to restore...
+C:\Users\Daolyap\Documents\Projects\Primple\Primple.Core\Primple.Core.csproj : warning NU1510: PackageReference System.Drawing.Common will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary. [C:\Users\Daolyap\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop.csproj]
+  All projects are up-to-date for restore.
+C:\Users\Daolyap\Documents\Projects\Primple\Primple.Core\Primple.Core.csproj : warning NU1510: PackageReference System.Drawing.Common will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.
+  Primple.Core -> C:\Users\Daolyap\Documents\Projects\Primple\Primple.Core\bin\Debug\net10.0-windows\Primple.Core.dll
+C:\Users\Daolyap\Documents\Projects\Primple\Primple.Desktop\MainWindow.xaml.cs(62,5): error CS1519: Invalid token '}' in a member declaration [C:\Users\Daolyap\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop_pnjhegtc_wpftmp.csproj]
+
+Build FAILED.
+
+C:\Users\Daolyap\Documents\Projects\Primple\Primple.Core\Primple.Core.csproj : warning NU1510: PackageReference System.Drawing.Common will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary. [C:\Users\Daolyap\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop.csproj]
+C:\Users\Daolyap\Documents\Projects\Primple\Primple.Core\Primple.Core.csproj : warning NU1510: PackageReference System.Drawing.Common will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.
+C:\Users\Daolyap\Documents\Projects\Primple\Primple.Desktop\MainWindow.xaml.cs(62,5): error CS1519: Invalid token '}' in a member declaration [C:\Users\Daolyap\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop_pnjhegtc_wpftmp.csproj]
+    2 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:03.45

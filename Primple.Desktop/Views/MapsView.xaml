@@ -28,31 +28,65 @@
                     <Button Grid.Column="1" Content="Go" Width="40" Margin="5,0,0,0" Style="{StaticResource GlassButtonStyle}" Click="SearchButton_Click"/>
                 </Grid>
                 
-                <TextBlock x:Name="LocationText" Text="No location selected" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,20"/>
+                <TextBlock x:Name="LocationText" Text="No location selected" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,15"/>
 
                 <!-- Radius -->
                 <TextBlock Text="Area Size (Radius)" Foreground="#AAAAAA" Margin="0,0,0,5"/>
-                <DockPanel Margin="0,0,0,15">
+                <DockPanel Margin="0,0,0,10">
                     <TextBox Text="{Binding ElementName=RadiusSlider, Path=Value, StringFormat=N0}" Width="50" DockPanel.Dock="Right" Margin="5,0,0,0" Background="#22FFFFFF" Foreground="White" BorderThickness="0" Padding="2" VerticalAlignment="Center"/>
                     <TextBlock Text="m" Foreground="#AAAAAA" DockPanel.Dock="Right" Margin="5,0,0,0" VerticalAlignment="Center"/>
-                    <Slider x:Name="RadiusSlider" Minimum="100" Maximum="2000" Value="500" TickFrequency="100" IsSnapToTickEnabled="True"/>
+                    <Slider x:Name="RadiusSlider" Minimum="100" Maximum="10000" Value="500" TickFrequency="100" IsSnapToTickEnabled="True"/>
                 </DockPanel>
 
-                <!-- Mode -->
-                <TextBlock Text="Mode" Foreground="#AAAAAA" Margin="0,0,0,5"/>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                    <RadioButton x:Name="Mode2D" Content="2D (Relief)" IsChecked="True" Foreground="White" Margin="0,0,15,0"/>
-                    <RadioButton x:Name="Mode3D" Content="3D (Extruded)" Foreground="White"/>
-                </StackPanel>
+                <!-- Resolution -->
+                <TextBlock Text="Resolution (Detail)" Foreground="#AAAAAA" Margin="0,0,0,5"/>
+                <DockPanel Margin="0,0,0,15">
+                    <TextBlock Text="{Binding ElementName=ResolutionSlider, Path=Value, StringFormat={}{0}%}" Width="40" DockPanel.Dock="Right" Margin="5,0,0,0" Foreground="White" VerticalAlignment="Center"/>
+                    <Slider x:Name="ResolutionSlider" Minimum="1" Maximum="200" Value="100" TickFrequency="10" IsSnapToTickEnabled="True"/>
+                </DockPanel>
 
-                <!-- Layers -->
-                <TextBlock Text="Layers" Foreground="#AAAAAA" Margin="0,0,0,5"/>
-                <CheckBox x:Name="CheckBuildings" Content="Buildings" IsChecked="True" Foreground="White" Margin="0,5,0,0"/>
-                <CheckBox x:Name="CheckRoads" Content="Roads" IsChecked="True" Foreground="White" Margin="0,5,0,0"/>
-                <CheckBox x:Name="CheckWater" Content="Water" IsChecked="False" Foreground="White" Margin="0,5,0,15" ToolTip="Water is usually the base plane."/>
+                <!-- Colors & Layers -->
+                <TextBlock Text="Layers &amp; Colors" Foreground="#AAAAAA" Margin="0,0,0,5"/>
+                
+                <Grid Margin="0,2">
+                     <CheckBox x:Name="CheckBuildings" Content="Buildings" IsChecked="True" Foreground="White" VerticalAlignment="Center"/>
+                     <TextBox x:Name="BuildingColorHex" Text="#FF6464" Width="80" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="25" FontSize="11"/>
+                </Grid>
+                
+                <Grid Margin="0,2">
+                     <CheckBox x:Name="CheckRoads" Content="Roads" IsChecked="True" Foreground="White" VerticalAlignment="Center"/>
+                     <TextBox x:Name="RoadColorHex" Text="#323232" Width="80" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="25" FontSize="11"/>
+                </Grid>
+
+                 <Grid Margin="0,2">
+                     <TextBlock Text="Base/Water" Foreground="White" VerticalAlignment="Center" Margin="20,0,0,0"/>
+                     <TextBox x:Name="BaseColorHex" Text="#C8C8C8" Width="80" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="25" FontSize="11"/>
+                </Grid>
+
+                <!-- Base Shape Option -->
+                <TextBlock Text="Base Shape" Foreground="#AAAAAA" Margin="0,5,0,5" FontSize="12"/>
+                <ComboBox x:Name="BaseShapeCombo" SelectedIndex="0" Height="30" Style="{StaticResource GlassTextBoxStyle}" Margin="0,0,0,10">
+                    <ComboBoxItem Content="Square"/>
+                    <ComboBoxItem Content="Circular"/>
+                </ComboBox>
+
+                <CheckBox x:Name="Check3D" Content="3D Mode (Extruded)" IsChecked="True" Foreground="White" Margin="0,10,0,10"/>
+
+                <!-- 3D Printer Settings -->
+                <TextBlock Text="3D Printer Settings" Foreground="#AAAAAA" Margin="0,0,0,5" FontWeight="Bold"/>
+                
+                <Grid Margin="0,2">
+                    <TextBlock Text="Scale" VerticalAlignment="Center" Foreground="#CCFFFFFF" FontSize="12"/>
+                    <TextBox x:Name="ScaleTextBox" Text="1.0" Width="70" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="25" FontSize="11"/>
+                </Grid>
+                
+                <Grid Margin="0,2">
+                    <TextBlock Text="Output Size (mm)" VerticalAlignment="Center" Foreground="#CCFFFFFF" FontSize="12"/>
+                    <TextBox x:Name="OutputSizeTextBox" Text="100" Width="70" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="25" FontSize="11"/>
+                </Grid>
 
                 <Button Content="Generate Preview" Height="40" Style="{StaticResource GlassButtonStyle}" Margin="0,10,0,10" Click="GenerateButton_Click"/>
-                <Button Content="Send to Editor" Height="40" Style="{StaticResource GlassButtonStyle}" Background="{StaticResource AccentBrush}" Click="SendToEditor_Click"/>
+                <Button Content="Export As STL" Height="40" Style="{StaticResource GlassButtonStyle}" Background="{StaticResource AccentBrush}" Click="ExportButton_Click"/>
                 
                 <TextBlock x:Name="StatusText" Text="" Foreground="#88FFFFFF" TextWrapping="Wrap" Margin="0,10,0,0"/>
             </StackPanel>
