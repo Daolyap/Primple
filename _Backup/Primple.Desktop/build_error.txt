@@ -1,0 +1,21 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Primple.Core -> C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Core\bin\Debug\net9.0\Primple.Core.dll
+  Primple.Infrastructure -> C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Infrastructure\bin\Debug\net9.0\Primple.Infrastructure.dll
+C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\MainWindow.xaml.cs(72,62): warning CS8604: Possible null reference argument for parameter 'depObj' in 'IEnumerable<T> MainWindow.FindVisualChildren<T>(DependencyObject depObj)'. [C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop_tvy4ayww_wpftmp.csproj]
+C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Views\StlEditorView.xaml.cs(34,30): error CS0246: The type or namespace name 'StlReader' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop_tvy4ayww_wpftmp.csproj]
+C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Views\StlEditorView.xaml.cs(9,22): warning CA1515: Because an application's API isn't typically referenced from outside the assembly, types can be made internal (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1515) [C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop_tvy4ayww_wpftmp.csproj]
+C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\MainWindow.xaml.cs(7,29): warning CA1515: Because an application's API isn't typically referenced from outside the assembly, types can be made internal (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1515) [C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop_tvy4ayww_wpftmp.csproj]
+C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Views\StlEditorView.xaml.cs(48,9): warning CA1031: Modify 'LoadStl' to catch a more specific allowed exception type, or rethrow the exception (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1031) [C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop_tvy4ayww_wpftmp.csproj]
+
+Build FAILED.
+
+C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\MainWindow.xaml.cs(72,62): warning CS8604: Possible null reference argument for parameter 'depObj' in 'IEnumerable<T> MainWindow.FindVisualChildren<T>(DependencyObject depObj)'. [C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop_tvy4ayww_wpftmp.csproj]
+C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Views\StlEditorView.xaml.cs(9,22): warning CA1515: Because an application's API isn't typically referenced from outside the assembly, types can be made internal (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1515) [C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop_tvy4ayww_wpftmp.csproj]
+C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\MainWindow.xaml.cs(7,29): warning CA1515: Because an application's API isn't typically referenced from outside the assembly, types can be made internal (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1515) [C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop_tvy4ayww_wpftmp.csproj]
+C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Views\StlEditorView.xaml.cs(48,9): warning CA1031: Modify 'LoadStl' to catch a more specific allowed exception type, or rethrow the exception (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1031) [C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop_tvy4ayww_wpftmp.csproj]
+C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Views\StlEditorView.xaml.cs(34,30): error CS0246: The type or namespace name 'StlReader' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Logan Heath\Documents\Projects\Primple\Primple.Desktop\Primple.Desktop_tvy4ayww_wpftmp.csproj]
+    4 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:03.56
