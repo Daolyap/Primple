@@ -33,7 +33,7 @@
                 <!-- Radius -->
                 <TextBlock Text="Area Size (Radius)" Foreground="#AAAAAA" Margin="0,0,0,5"/>
                 <DockPanel Margin="0,0,0,10">
-                    <TextBox Text="{Binding ElementName=RadiusSlider, Path=Value, StringFormat=N0}" Width="50" DockPanel.Dock="Right" Margin="5,0,0,0" Background="#22FFFFFF" Foreground="White" BorderThickness="0" Padding="2" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding ElementName=RadiusSlider, Path=Value, StringFormat=N0}" Width="60" DockPanel.Dock="Right" Margin="5,0,0,0" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12" VerticalContentAlignment="Center"/>
                     <TextBlock Text="m" Foreground="#AAAAAA" DockPanel.Dock="Right" Margin="5,0,0,0" VerticalAlignment="Center"/>
                     <Slider x:Name="RadiusSlider" Minimum="100" Maximum="10000" Value="500" TickFrequency="100" IsSnapToTickEnabled="True"/>
                 </DockPanel>
@@ -50,17 +50,17 @@
                 
                 <Grid Margin="0,2">
                      <CheckBox x:Name="CheckBuildings" Content="Buildings" IsChecked="True" Foreground="White" VerticalAlignment="Center"/>
-                     <TextBox x:Name="BuildingColorHex" Text="#FF6464" Width="80" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="25" FontSize="11"/>
+                     <TextBox x:Name="BuildingColorHex" Text="#FF6464" Width="90" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12"/>
                 </Grid>
                 
                 <Grid Margin="0,2">
                      <CheckBox x:Name="CheckRoads" Content="Roads" IsChecked="True" Foreground="White" VerticalAlignment="Center"/>
-                     <TextBox x:Name="RoadColorHex" Text="#323232" Width="80" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="25" FontSize="11"/>
+                     <TextBox x:Name="RoadColorHex" Text="#323232" Width="90" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12"/>
                 </Grid>
 
                  <Grid Margin="0,2">
                      <TextBlock Text="Base/Water" Foreground="White" VerticalAlignment="Center" Margin="20,0,0,0"/>
-                     <TextBox x:Name="BaseColorHex" Text="#C8C8C8" Width="80" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="25" FontSize="11"/>
+                     <TextBox x:Name="BaseColorHex" Text="#C8C8C8" Width="90" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12"/>
                 </Grid>
 
                 <!-- Base Shape Option -->
@@ -77,12 +77,12 @@
                 
                 <Grid Margin="0,2">
                     <TextBlock Text="Scale" VerticalAlignment="Center" Foreground="#CCFFFFFF" FontSize="12"/>
-                    <TextBox x:Name="ScaleTextBox" Text="1.0" Width="70" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="25" FontSize="11"/>
+                    <TextBox x:Name="ScaleTextBox" Text="1.0" Width="80" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12"/>
                 </Grid>
                 
                 <Grid Margin="0,2">
                     <TextBlock Text="Output Size (mm)" VerticalAlignment="Center" Foreground="#CCFFFFFF" FontSize="12"/>
-                    <TextBox x:Name="OutputSizeTextBox" Text="100" Width="70" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="25" FontSize="11"/>
+                    <TextBox x:Name="OutputSizeTextBox" Text="100" Width="80" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12"/>
                 </Grid>
 
                 <Button Content="Generate Preview" Height="40" Style="{StaticResource GlassButtonStyle}" Margin="0,10,0,10" Click="GenerateButton_Click"/>

@@ -232,21 +232,19 @@ public class MapsService : IMapsService
                         // Add base faces (on ground, Y=0)
                         foreach (var tri in triangles)
                         {
-                            AddFace(buildingMesh, 
+                            AddTriangle(buildingMesh, 
                                 new Point3D(tri.p1.X, 0, tri.p1.Y),
                                 new Point3D(tri.p2.X, 0, tri.p2.Y),
-                                new Point3D(tri.p3.X, 0, tri.p3.Y),
-                                new Point3D(tri.p3.X, 0, tri.p3.Y)); // Degenerate quad = triangle
+                                new Point3D(tri.p3.X, 0, tri.p3.Y));
                         }
                         
-                        // Add roof faces (at height)
+                        // Add roof faces (at height) - flipped winding for correct normal
                         foreach (var tri in triangles)
                         {
-                            AddFace(buildingMesh,
+                            AddTriangle(buildingMesh,
                                 new Point3D(tri.p3.X, height, tri.p3.Y),
                                 new Point3D(tri.p2.X, height, tri.p2.Y),
-                                new Point3D(tri.p1.X, height, tri.p1.Y),
-                                new Point3D(tri.p1.X, height, tri.p1.Y)); // Flipped winding for top
+                                new Point3D(tri.p1.X, height, tri.p1.Y));
                         }
                         
                         // Add walls (vertical faces connecting base to roof)
@@ -420,6 +418,17 @@ public class MapsService : IMapsService
         mesh.Positions.Add(p0); mesh.Positions.Add(p1); mesh.Positions.Add(p2); mesh.Positions.Add(p3);
         mesh.TriangleIndices.Add(index); mesh.TriangleIndices.Add(index + 1); mesh.TriangleIndices.Add(index + 2);
         mesh.TriangleIndices.Add(index); mesh.TriangleIndices.Add(index + 2); mesh.TriangleIndices.Add(index + 3);
+    }
+
+    private void AddTriangle(MeshGeometry3D mesh, Point3D p0, Point3D p1, Point3D p2)
+    {
+        int index = mesh.Positions.Count;
+        mesh.Positions.Add(p0); 
+        mesh.Positions.Add(p1); 
+        mesh.Positions.Add(p2);
+        mesh.TriangleIndices.Add(index); 
+        mesh.TriangleIndices.Add(index + 1); 
+        mesh.TriangleIndices.Add(index + 2);
     }
 
     private (double x, double y) LatLonToMeters(double lat, double lon, double centerLat, double centerLon)

@@ -60,11 +60,14 @@
                                MouseLeftButtonDown="TitleBar_MouseLeftButtonDown"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="─" Width="40" Height="40" Style="{DynamicResource GlassButtonStyle}" 
-                                Click="MinimizeButton_Click" FontSize="16" Padding="0" Margin="0"/>
+                                Click="MinimizeButton_Click" FontSize="16" Padding="0" Margin="0"
+                                WindowChrome.IsHitTestVisibleInChrome="True"/>
                         <Button Content="□" Width="40" Height="40" Style="{DynamicResource GlassButtonStyle}" 
-                                Click="MaximizeButton_Click" FontSize="16" Padding="0" Margin="0"/>
+                                Click="MaximizeButton_Click" FontSize="16" Padding="0" Margin="0"
+                                WindowChrome.IsHitTestVisibleInChrome="True"/>
                         <Button Content="✕" Width="40" Height="40" Style="{DynamicResource GlassButtonStyle}" 
-                                Click="CloseButton_Click" FontSize="16" Padding="0" Margin="0"/>
+                                Click="CloseButton_Click" FontSize="16" Padding="0" Margin="0"
+                                WindowChrome.IsHitTestVisibleInChrome="True"/>
                     </StackPanel>
                 </Grid>
 
