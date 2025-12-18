@@ -11,6 +11,10 @@
     <PackageReference Include="HelixToolkit" Version="3.1.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Resource Include="Assets\**" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>

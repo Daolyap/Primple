@@ -15,7 +15,6 @@ public partial class MainWindow : Window
         
         // Setup Navigation
         _views.Add("Home", new Views.HomeView());
-        _views.Add("StlEditor", new Views.StlEditorView());
         _views.Add("Maps", new Views.MapsView());
         _views.Add("ImageTo3d", new Views.ImageTo3dView());
         _views.Add("Templates", new Views.TemplatesView());
@@ -24,7 +23,7 @@ public partial class MainWindow : Window
         SetupNavigation();
     }
 
-    private void Navigate(string viewTag)
+    public void Navigate(string viewTag)
     {
         try
         {
@@ -42,6 +41,12 @@ public partial class MainWindow : Window
         }
     }
 
+    public UserControl? GetView(string tag)
+    {
+        _views.TryGetValue(tag, out var view);
+        return view;
+    }
+
     private void SetupNavigation()
     {
         this.Loaded += (s, e) => 
@@ -57,6 +62,35 @@ public partial class MainWindow : Window
                 };
             }
         };
+    }
+
+    private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            MaximizeButton_Click(sender, e);
+        }
+        else
+        {
+            this.DragMove();
+        }
+    }
+
+    private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+    {
+        this.WindowState = WindowState.Minimized;
+    }
+
+    private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+    {
+        this.WindowState = this.WindowState == WindowState.Maximized 
+            ? WindowState.Normal 
+            : WindowState.Maximized;
+    }
+
+    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        this.Close();
     }
 
     private static IEnumerable<T> FindVisualChildren<T>(DependencyObject depObj) where T : DependencyObject
