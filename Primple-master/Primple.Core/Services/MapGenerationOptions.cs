@@ -23,5 +23,11 @@ public class MapGenerationOptions
     public Color BuildingColor { get; set; }
     public Color RoadColor { get; set; }
     public Color WaterColor { get; set; }
+    // Elevation
+    public bool IncludeElevation { get; set; }
+    public bool UseGroundLevel { get; set; } = false;
+    public double GroundLevel { get; set; } = 0;
+    public double BaseThickness { get; set; } = 3.0;
+
     public BaseShape BaseShape { get; set; } = BaseShape.Square;
 }

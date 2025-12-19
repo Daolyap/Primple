@@ -32,7 +32,7 @@ public partial class ImageTo3dView : UserControl
         }
     }
 
-    private void Settings_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void Settings_Changed(object sender, EventArgs e)
     {
         // No auto-update to avoid lag
     }
@@ -51,7 +51,14 @@ public partial class ImageTo3dView : UserControl
             if (App.AppHost != null)
             {
                 var service = App.AppHost.Services.GetRequiredService<IHeightmapService>();
-                var mesh = service.GenerateHeightmap(_currentImagePath, HeightSlider.Value, (int)ResolutionSlider.Value);
+                
+                // Get selected shape
+                ProjectionShape selectedShape = ProjectionShape.Plane;
+                if (ShapeSelector.SelectedIndex == 1) selectedShape = ProjectionShape.Sphere;
+                else if (ShapeSelector.SelectedIndex == 2) selectedShape = ProjectionShape.Cube;
+                else if (ShapeSelector.SelectedIndex == 3) selectedShape = ProjectionShape.Cylinder;
+
+                var mesh = service.GenerateHeightmap(_currentImagePath, HeightSlider.Value, (int)ResolutionSlider.Value, selectedShape);
                 
                 var material = GetCurrentMaterial();
                 _currentGeometry = new GeometryModel3D(mesh, material);

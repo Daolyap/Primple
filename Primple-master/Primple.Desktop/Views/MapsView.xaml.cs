@@ -142,7 +142,11 @@ public partial class MapsView : UserControl
                     BuildingColor = ParseColor(BuildingColorHex.Text, Color.FromRgb(255, 100, 100)),
                     RoadColor = ParseColor(RoadColorHex.Text, Color.FromRgb(50, 50, 50)),
                     WaterColor = Colors.Blue, // Placeholder if needed in future
-                    BaseShape = BaseShapeCombo.SelectedIndex == 1 ? Primple.Core.Services.BaseShape.Circular : Primple.Core.Services.BaseShape.Square
+                    BaseShape = BaseShapeCombo.SelectedIndex == 1 ? Primple.Core.Services.BaseShape.Circular : Primple.Core.Services.BaseShape.Square,
+                    IncludeElevation = CheckElevation.IsChecked == true,
+                    UseGroundLevel = CheckGroundLevel.IsChecked == true,
+                    GroundLevel = GroundLevelSlider.Value,
+                    BaseThickness = BaseThicknessSlider.Value
                 };
 
                 _currentModel = await mapsService.GenerateMapModel(options);
