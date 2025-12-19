@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "dgSpecHash": "JlkCIOk6ll8=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple-master\\Primple.Core\\Primple.Core.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Logan Heath\\.nuget\\packages\\system.drawing.common\\6.0.0\\system.drawing.common.6.0.0.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1510",
+      "level": "Warning",
+      "message": "PackageReference System.Drawing.Common will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.",
+      "projectPath": "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple-master\\Primple.Core\\Primple.Core.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple-master\\Primple.Core\\Primple.Core.csproj",
+      "libraryId": "System.Drawing.Common",
+      "targetGraphs": [
+        "net10.0-windows7.0"
+      ]
+    }
+  ]
+}
