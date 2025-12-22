@@ -25,6 +25,7 @@ public partial class App : Application
                 services.AddSingleton<Primple.Desktop.Services.IFigService, Primple.Desktop.Services.FigService>();
                 services.AddSingleton<Primple.Core.Services.IProjectState, Primple.Core.Services.ProjectState>();
                 services.AddSingleton<Primple.Core.Services.IAppSettings, Primple.Core.Services.AppSettings>();
+                services.AddSingleton<Primple.Core.Services.ILogService, Primple.Core.Services.LogService>();
             })
             .Build();
     }
@@ -41,7 +42,22 @@ public partial class App : Application
             var settings = AppHost.Services.GetService<Primple.Core.Services.IAppSettings>();
             settings?.Load();
 
+            // Setup log service based on debug mode setting
+            var logService = AppHost.Services.GetService<Primple.Core.Services.ILogService>();
+            if (logService != null && settings != null)
+            {
+                logService.IsEnabled = settings.DebugMode;
+                logService.Log("Application started", "App", "INFO");
+            }
+
             var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
+            
+            // Apply startup window state from settings
+            if (settings != null && !settings.StartMaximized)
+            {
+                startupForm.WindowState = WindowState.Normal;
+            }
+            
             startupForm.Show();
         }
         catch (Exception ex)
@@ -53,6 +69,10 @@ public partial class App : Application
 
     protected override async void OnExit(ExitEventArgs e)
     {
+        // Log shutdown
+        var logService = AppHost?.Services.GetService<Primple.Core.Services.ILogService>();
+        logService?.Log("Application shutting down", "App", "INFO");
+
         if (AppHost != null)
         {
             await AppHost.StopAsync();

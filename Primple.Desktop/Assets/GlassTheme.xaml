@@ -88,6 +88,9 @@
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="CaretBrush" Value="{StaticResource AccentBrush}"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="TextWrapping" Value="NoWrap"/>
+        <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
@@ -95,8 +98,13 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="8">
-                        <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                            CornerRadius="8"
+                            ToolTip="{TemplateBinding ToolTip}">
+                        <ScrollViewer x:Name="PART_ContentHost" 
+                                     Focusable="false" 
+                                     HorizontalScrollBarVisibility="Auto" 
+                                     VerticalScrollBarVisibility="Hidden"
+                                     Padding="{TemplateBinding Padding}"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">

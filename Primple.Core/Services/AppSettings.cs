@@ -15,6 +15,10 @@ public interface IAppSettings : INotifyPropertyChanged
     string DefaultBaseColor { get; set; }
     string DefaultBuildingColor { get; set; }
     string DefaultRoadColor { get; set; }
+    bool DebugMode { get; set; }
+    bool StartMaximized { get; set; }
+    double WaterDepth { get; set; }
+    double BuildingElevationOffset { get; set; }
     
     void Save();
     void Load();
@@ -33,6 +37,10 @@ public class AppSettings : IAppSettings
     private string _defaultBaseColor = "#C8C8C8";
     private string _defaultBuildingColor = "#FF6464";
     private string _defaultRoadColor = "#323232";
+    private bool _debugMode = false;
+    private bool _startMaximized = true;
+    private double _waterDepth = 2.0;
+    private double _buildingElevationOffset = 0.0;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -101,6 +109,58 @@ public class AppSettings : IAppSettings
         }
     }
 
+    public bool DebugMode
+    {
+        get => _debugMode;
+        set
+        {
+            if (_debugMode != value)
+            {
+                _debugMode = value;
+                OnPropertyChanged(nameof(DebugMode));
+            }
+        }
+    }
+
+    public bool StartMaximized
+    {
+        get => _startMaximized;
+        set
+        {
+            if (_startMaximized != value)
+            {
+                _startMaximized = value;
+                OnPropertyChanged(nameof(StartMaximized));
+            }
+        }
+    }
+
+    public double WaterDepth
+    {
+        get => _waterDepth;
+        set
+        {
+            if (Math.Abs(_waterDepth - value) > 0.001)
+            {
+                _waterDepth = value;
+                OnPropertyChanged(nameof(WaterDepth));
+            }
+        }
+    }
+
+    public double BuildingElevationOffset
+    {
+        get => _buildingElevationOffset;
+        set
+        {
+            if (Math.Abs(_buildingElevationOffset - value) > 0.001)
+            {
+                _buildingElevationOffset = value;
+                OnPropertyChanged(nameof(BuildingElevationOffset));
+            }
+        }
+    }
+
     public void Save()
     {
         try
@@ -117,7 +177,11 @@ public class AppSettings : IAppSettings
                 DefaultExportScale = this.DefaultExportScale,
                 DefaultBaseColor = this.DefaultBaseColor,
                 DefaultBuildingColor = this.DefaultBuildingColor,
-                DefaultRoadColor = this.DefaultRoadColor
+                DefaultRoadColor = this.DefaultRoadColor,
+                DebugMode = this.DebugMode,
+                StartMaximized = this.StartMaximized,
+                WaterDepth = this.WaterDepth,
+                BuildingElevationOffset = this.BuildingElevationOffset
             };
 
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
@@ -145,6 +209,10 @@ public class AppSettings : IAppSettings
                     DefaultBaseColor = data.DefaultBaseColor ?? "#C8C8C8";
                     DefaultBuildingColor = data.DefaultBuildingColor ?? "#FF6464";
                     DefaultRoadColor = data.DefaultRoadColor ?? "#323232";
+                    DebugMode = data.DebugMode;
+                    StartMaximized = data.StartMaximized;
+                    WaterDepth = data.WaterDepth;
+                    BuildingElevationOffset = data.BuildingElevationOffset;
                 }
             }
         }
@@ -175,5 +243,17 @@ public class AppSettings : IAppSettings
         
         [JsonPropertyName("defaultRoadColor")]
         public string DefaultRoadColor { get; set; } = "#323232";
+
+        [JsonPropertyName("debugMode")]
+        public bool DebugMode { get; set; } = false;
+
+        [JsonPropertyName("startMaximized")]
+        public bool StartMaximized { get; set; } = true;
+
+        [JsonPropertyName("waterDepth")]
+        public double WaterDepth { get; set; } = 2.0;
+
+        [JsonPropertyName("buildingElevationOffset")]
+        public double BuildingElevationOffset { get; set; } = 0.0;
     }
 }

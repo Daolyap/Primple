@@ -9,6 +9,7 @@ namespace Primple.Desktop.Views;
 public partial class SettingsView : UserControl
 {
     private IAppSettings? _settings;
+    private ILogService? _logService;
     private bool _isLoading = true;
 
     public SettingsView()
@@ -22,6 +23,7 @@ public partial class SettingsView : UserControl
         if (App.AppHost != null)
         {
             _settings = App.AppHost.Services.GetService<IAppSettings>();
+            _logService = App.AppHost.Services.GetService<ILogService>();
             if (_settings != null)
             {
                 LoadSettings();
@@ -43,6 +45,15 @@ public partial class SettingsView : UserControl
         DefaultBaseColorTextBox.Text = _settings.DefaultBaseColor;
         DefaultBuildingColorTextBox.Text = _settings.DefaultBuildingColor;
         DefaultRoadColorTextBox.Text = _settings.DefaultRoadColor;
+
+        DebugModeCheckBox.IsChecked = _settings.DebugMode;
+        StartMaximizedCheckBox.IsChecked = _settings.StartMaximized;
+
+        WaterDepthSlider.Value = _settings.WaterDepth;
+        WaterDepthTextBox.Text = _settings.WaterDepth.ToString("F1");
+
+        BuildingOffsetSlider.Value = _settings.BuildingElevationOffset;
+        BuildingOffsetTextBox.Text = _settings.BuildingElevationOffset.ToString("F1");
         
         UpdateColorPreviews();
         
@@ -61,6 +72,20 @@ public partial class SettingsView : UserControl
     {
         if (_isLoading) return;
         DefaultScaleTextBox.Text = DefaultScaleSlider.Value.ToString("F2");
+        SaveCurrentSettings();
+    }
+
+    private void WaterDepthSlider_Changed(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_isLoading || WaterDepthTextBox == null) return;
+        WaterDepthTextBox.Text = WaterDepthSlider.Value.ToString("F1");
+        SaveCurrentSettings();
+    }
+
+    private void BuildingOffsetSlider_Changed(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_isLoading || BuildingOffsetTextBox == null) return;
+        BuildingOffsetTextBox.Text = BuildingOffsetSlider.Value.ToString("F1");
         SaveCurrentSettings();
     }
 
@@ -117,10 +142,22 @@ public partial class SettingsView : UserControl
         if (_settings == null) return;
 
         _settings.Enable3DAcceleration = Enable3DAccelerationCheckBox.IsChecked == true;
+        _settings.DebugMode = DebugModeCheckBox.IsChecked == true;
+        _settings.StartMaximized = StartMaximizedCheckBox.IsChecked == true;
         
         if (double.TryParse(DefaultScaleTextBox.Text, out double scale))
         {
             _settings.DefaultExportScale = scale;
+        }
+
+        if (double.TryParse(WaterDepthTextBox.Text, out double waterDepth))
+        {
+            _settings.WaterDepth = waterDepth;
+        }
+
+        if (double.TryParse(BuildingOffsetTextBox.Text, out double buildingOffset))
+        {
+            _settings.BuildingElevationOffset = buildingOffset;
         }
         
         _settings.DefaultBaseColor = DefaultBaseColorTextBox.Text;
@@ -128,6 +165,12 @@ public partial class SettingsView : UserControl
         _settings.DefaultRoadColor = DefaultRoadColorTextBox.Text;
         
         _settings.Save();
+
+        // Update log service debug mode
+        if (_logService != null)
+        {
+            _logService.IsEnabled = _settings.DebugMode;
+        }
         
         StatusText.Text = "✓ Settings saved";
         
@@ -160,10 +203,27 @@ public partial class SettingsView : UserControl
         _settings.DefaultBaseColor = "#C8C8C8";
         _settings.DefaultBuildingColor = "#FF6464";
         _settings.DefaultRoadColor = "#323232";
+        _settings.DebugMode = false;
+        _settings.StartMaximized = true;
+        _settings.WaterDepth = 2.0;
+        _settings.BuildingElevationOffset = 0.0;
         
         LoadSettings();
         SaveCurrentSettings();
         
         StatusText.Text = "✓ Reset to defaults";
+    }
+
+    private void ViewLogs_Click(object sender, RoutedEventArgs e)
+    {
+        if (_logService == null || App.AppHost == null) 
+        {
+            MessageBox.Show("Log service is not available.", "Debug Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var logWindow = new LogViewerWindow(_logService);
+        logWindow.Owner = Window.GetWindow(this);
+        logWindow.Show();
     }
 }

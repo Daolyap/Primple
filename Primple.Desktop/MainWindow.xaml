@@ -6,7 +6,9 @@
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        ResizeMode="CanResizeWithGrip">
+        ResizeMode="CanResizeWithGrip"
+        WindowState="Maximized"
+        Loaded="Window_Loaded">
     
     <WindowChrome.WindowChrome>
         <WindowChrome GlassFrameThickness="-1" CornerRadius="0" CaptionHeight="40" ResizeBorderThickness="4"/>

@@ -26,6 +26,14 @@ public partial class MapsView : UserControl
         StatusText.Text = "Template parameters loaded.";
     }
 
+    public void SetLocationWithElevation(double lat, double lon, string name, double radius)
+    {
+        SetLocation(lat, lon, name, radius);
+        // Enable elevation for natural features
+        CheckElevation.IsChecked = true;
+        StatusText.Text = "Template loaded with elevation enabled.";
+    }
+
     public MapsView()
     {
         InitializeComponent();

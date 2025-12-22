@@ -6,6 +6,7 @@ using Primple.Core.Services;
 using HelixToolkit.Wpf;
 using System.Windows.Media;
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Primple.Desktop.Services;
 
@@ -63,6 +64,7 @@ public class ElevationResult
 public class MapsService : IMapsService
 {
     private readonly HttpClient _client = new HttpClient();
+    private ILogService? _logService;
     
     // Internal class for building parts (multi-level structures)
     private class BuildingPart
@@ -75,72 +77,143 @@ public class MapsService : IMapsService
     public MapsService()
     {
         _client.DefaultRequestHeaders.Add("User-Agent", "PrimpleApp/1.0");
+        _client.Timeout = TimeSpan.FromSeconds(60);
     }
 
-    public async Task<(double lat, double lon, string name, double[]? boundingBox)> SearchLocation(string query)
+    private void Log(string message, string level = "INFO")
     {
+        if (_logService == null && App.AppHost != null)
+        {
+            _logService = App.AppHost.Services.GetService<ILogService>();
+        }
+        _logService?.Log(message, "MapsService", level);
+    }
+
+    public async Task<(double lat, double lon, string? name, double[]? boundingBox)> SearchLocation(string query)
+    {
+        Log($"Searching for location: {query}");
         try
         {
             string url = $"https://nominatim.openstreetmap.org/search?q={Uri.EscapeDataString(query)}&format=json&limit=1";
             var response = await _client.GetAsync(url);
-            if (!response.IsSuccessStatusCode) return (0, 0, null, null);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                Log($"Location search failed with status: {response.StatusCode}", "ERROR");
+                return (0, 0, null, null);
+            }
 
             var json = await response.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(json) || !json.Trim().StartsWith("[")) return (0, 0, null, null);
+            if (string.IsNullOrWhiteSpace(json) || !json.Trim().StartsWith("["))
+            {
+                Log("Invalid JSON response from Nominatim", "WARN");
+                return (0, 0, null, null);
+            }
 
             var results = JsonSerializer.Deserialize<List<NominatimResult>>(json);
             
             if (results != null && results.Count > 0)
             {
                 var first = results[0];
-                if (double.TryParse(first.Lat, out double lat) && double.TryParse(first.Lon, out double lon))
+                if (double.TryParse(first.Lat, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double lat) && 
+                    double.TryParse(first.Lon, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double lon))
                 {
                     double[]? bbox = null;
                     if (first.BoundingBox != null && first.BoundingBox.Count == 4)
                     {
-                        bbox = first.BoundingBox.Select(s => double.TryParse(s, out double d) ? d : 0).ToArray();
+                        bbox = first.BoundingBox.Select(s => double.TryParse(s, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double d) ? d : 0).ToArray();
                     }
+                    Log($"Found location: {first.DisplayName} at ({lat}, {lon})");
                     return (lat, lon, first.DisplayName, bbox);
                 }
             }
+            Log("No results found for location search", "WARN");
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log($"Location search error: {ex.Message}", "ERROR");
+        }
         return (0, 0, null, null);
     }
 
     public async Task<Model3DGroup> GenerateMapModel(MapGenerationOptions options)
     {
+        Log($"Generating map model at ({options.CenterLat}, {options.CenterLon}) with radius {options.RadiusMeters}m");
+        
         // 1. Fetch Data
         string query = BuildOverpassQuery(options.CenterLat, options.CenterLon, options.RadiusMeters);
         string url = "https://overpass-api.de/api/interpreter";
         OsmResponse? osmData = null;
+        string? errorMessage = null;
 
         try
         {
+            Log("Fetching OSM data from Overpass API...");
             var response = await _client.PostAsync(url, new StringContent(query));
+            
             if (response.IsSuccessStatusCode)
             {
                 string json = await response.Content.ReadAsStringAsync();
                 if (!string.IsNullOrWhiteSpace(json) && json.Trim().StartsWith("{"))
                 {
-                     osmData = JsonSerializer.Deserialize<OsmResponse>(json);
+                    osmData = JsonSerializer.Deserialize<OsmResponse>(json);
+                    Log($"OSM data received: {osmData?.Elements?.Count ?? 0} elements");
+                }
+                else
+                {
+                    errorMessage = "Invalid JSON response from Overpass API";
+                    Log(errorMessage, "ERROR");
                 }
             }
+            else
+            {
+                errorMessage = $"Overpass API returned status: {response.StatusCode}";
+                Log(errorMessage, "ERROR");
+            }
         }
-        catch { }
+        catch (TaskCanceledException)
+        {
+            errorMessage = "Request timed out - try a smaller area";
+            Log(errorMessage, "ERROR");
+        }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = $"Network error: {ex.Message}";
+            Log(errorMessage, "ERROR");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Unexpected error: {ex.Message}";
+            Log(errorMessage, "ERROR");
+        }
 
         // Fetch Elevation if requested
-        double[,] elevationGrid = null;
+        double[,]? elevationGrid = null;
         if (options.IncludeElevation)
         {
+            Log("Fetching elevation data...");
             elevationGrid = await FetchElevationData(options);
+            if (elevationGrid != null)
+            {
+                Log("Elevation data received successfully");
+            }
+            else
+            {
+                Log("Failed to fetch elevation data - using flat terrain", "WARN");
+            }
         }
 
         // 2. Process Data -> Mesh
+        // If we had an error and no data, still generate a base model (prevents all-blue screen)
+        if (osmData == null || osmData.Elements == null || osmData.Elements.Count == 0)
+        {
+            Log("No OSM data available - generating base terrain only", "WARN");
+        }
+
         return BuildModelFromOsm(osmData, options, elevationGrid);
     }
 
-    private async Task<double[,]> FetchElevationData(MapGenerationOptions options)
+    private async Task<double[,]?> FetchElevationData(MapGenerationOptions options)
     {
         int gridDivs = 10; // 100 points is enough for detail and keeps URL short
         double[,] grid = new double[gridDivs, gridDivs];
@@ -163,9 +236,9 @@ public class MapsService : IMapsService
                 }
             }
 
-            string url = $"https://api.open-meteo.com/v1/elevation?latitude={string.Join(",", lats)}&longitude={string.Join(",", lons)}";
+            string elevUrl = $"https://api.open-meteo.com/v1/elevation?latitude={string.Join(",", lats)}&longitude={string.Join(",", lons)}";
             
-            var response = await _client.GetAsync(url);
+            var response = await _client.GetAsync(elevUrl);
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
@@ -180,12 +253,19 @@ public class MapsService : IMapsService
                     return grid;
                 }
             }
+            else
+            {
+                Log($"Elevation API returned status: {response.StatusCode}", "WARN");
+            }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log($"Elevation fetch error: {ex.Message}", "ERROR");
+        }
         return null;
     }
 
-    private double GetElevation(double xMeters, double yMeters, double radius, double[,] grid, double groundLevel)
+    private double GetElevation(double xMeters, double yMeters, double radius, double[,]? grid, double groundLevel)
     {
         if (grid == null) return 0;
         
@@ -200,6 +280,10 @@ public class MapsService : IMapsService
         int iLat = (int)v;
         double du = u - jLon;
         double dv = v - iLat;
+        
+        // Ensure we don't go out of bounds
+        if (iLat >= gridDivs - 1) iLat = gridDivs - 2;
+        if (jLon >= gridDivs - 1) jLon = gridDivs - 2;
         
         // Bilinear interpolation: grid[Lat, Lon]
         double e00 = grid[iLat, jLon];
@@ -217,7 +301,7 @@ public class MapsService : IMapsService
 
     private string BuildOverpassQuery(double lat, double lon, double radius)
     {
-        return $"[out:json];(" +
+        return $"[out:json][timeout:45];(" +
                $"way[\"building\"](around:{radius},{lat},{lon});" +
                $"way[\"building:part\"](around:{radius},{lat},{lon});" +
                $"way[\"highway\"](around:{radius},{lat},{lon});" +
@@ -226,12 +310,23 @@ public class MapsService : IMapsService
                $");(._;>;);out body;";
     }
 
-    private Model3DGroup BuildModelFromOsm(OsmResponse? data, MapGenerationOptions options, double[,] elevationGrid = null)
+    private Model3DGroup BuildModelFromOsm(OsmResponse? data, MapGenerationOptions options, double[,]? elevationGrid = null)
     {
         var group = new Model3DGroup();
         double boundLimit = options.RadiusMeters;
         double size = boundLimit * 2;
         double usedGroundLevel = options.UseGroundLevel ? options.GroundLevel : 0;
+
+        // Water depth for 3D printing (water should be a depression)
+        double waterDepth = 2.0; // Default 2mm depth for water
+        if (App.AppHost != null)
+        {
+            var settings = App.AppHost.Services.GetService<IAppSettings>();
+            if (settings != null)
+            {
+                waterDepth = settings.WaterDepth;
+            }
+        }
 
         // 1. BASE BLOCK (The Foundation)
         var baseMesh = new MeshGeometry3D();
@@ -249,32 +344,33 @@ public class MapsService : IMapsService
         baseModel.BackMaterial = baseMat;
         group.Children.Add(baseModel);
 
-        if (data == null || data.Elements == null) return group;
-
-        // Map Node ID -> (Lat, Lon)
-        var nodes = data.Elements.Where(e => e.Type == "node").ToDictionary(n => n.Id, n => n);
-        var ways = data.Elements.Where(e => e.Type == "way").ToList();
-
-        // 2. COLLECT DATA
+        // 2. COLLECT DATA (if available)
         var buildingData = new List<(OsmElement way, List<System.Windows.Point> points)>();
         var partData = new List<(OsmElement way, List<System.Windows.Point> points)>();
         var waterData = new List<(OsmElement way, List<System.Windows.Point> points)>();
         var waterLines = new List<(OsmElement way, List<System.Windows.Point> points)>();
         var roadData = new List<(OsmElement way, List<System.Windows.Point> points)>();
 
-        foreach (var way in ways)
+        if (data != null && data.Elements != null)
         {
-            if (way.NodeIds == null || way.NodeIds.Count < 2) continue;
-            var points = GetWayPoints(way, nodes, options, boundLimit);
-            if (points.Count < 2) continue;
+            // Map Node ID -> (Lat, Lon)
+            var nodes = data.Elements.Where(e => e.Type == "node").ToDictionary(n => n.Id, n => n);
+            var ways = data.Elements.Where(e => e.Type == "way").ToList();
 
-            if (way.Tags != null)
+            foreach (var way in ways)
             {
-                if (way.Tags.ContainsKey("building")) buildingData.Add((way, points));
-                else if (way.Tags.ContainsKey("building:part")) partData.Add((way, points));
-                else if (way.Tags.TryGetValue("natural", out string? nat) && nat == "water") waterData.Add((way, points));
-                else if (way.Tags.ContainsKey("waterway")) waterLines.Add((way, points));
-                else if (way.Tags.ContainsKey("highway")) roadData.Add((way, points));
+                if (way.NodeIds == null || way.NodeIds.Count < 2) continue;
+                var points = GetWayPoints(way, nodes, options, boundLimit);
+                if (points.Count < 2) continue;
+
+                if (way.Tags != null)
+                {
+                    if (way.Tags.ContainsKey("building")) buildingData.Add((way, points));
+                    else if (way.Tags.ContainsKey("building:part")) partData.Add((way, points));
+                    else if (way.Tags.TryGetValue("natural", out string? nat) && nat == "water") waterData.Add((way, points));
+                    else if (way.Tags.ContainsKey("waterway")) waterLines.Add((way, points));
+                    else if (way.Tags.ContainsKey("highway")) roadData.Add((way, points));
+                }
             }
         }
 
@@ -301,12 +397,13 @@ public class MapsService : IMapsService
                 double rawElev = GetElevation(x, z, boundLimit, elevationGrid, usedGroundLevel);
                 double elev = Math.Max(-0.2, rawElev) * verticalScale;
 
-                // Vertex Dipping: Carve riverbeds into the mesh
+                // Vertex Dipping: Carve riverbeds into the mesh for proper 3D printing
                 var pt = new System.Windows.Point(x, z);
                 bool inWater = waterData.Any(w => w.points.Count >= 3 && IsPointInPolygon(pt, w.points)) ||
                              waterLines.Any(wl => IsPointNearLine(pt, wl.points, 4.0)); // 4m radius for rivers
                 
-                if (inWater) elev -= 1.0; // Dip riverbed by 1m
+                // Water is a depression - important for 3D printing
+                if (inWater) elev -= waterDepth;
 
                 groundMesh.Positions.Add(new Point3D(x, elev, z));
             }
@@ -349,7 +446,8 @@ public class MapsService : IMapsService
         var groundMat = new DiffuseMaterial(new SolidColorBrush(Color.FromRgb(100, 160, 100)));
         group.Children.Add(new GeometryModel3D(groundMesh, groundMat) { BackMaterial = groundMat });
 
-        // 4. WATER SURFACE (Polygons & Lines)
+        // 4. WATER SURFACE (visual representation - below ground level for 3D printing)
+        // Note: Water is carved into terrain, this visual layer is for preview only
         var waterSurfaceMesh = new MeshGeometry3D();
         var waterLinesMesh = new MeshGeometry3D();
 
@@ -363,7 +461,8 @@ public class MapsService : IMapsService
                     double e1 = GetElevation(tri.p1.X, tri.p1.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale;
                     double e2 = GetElevation(tri.p2.X, tri.p2.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale;
                     double e3 = GetElevation(tri.p3.X, tri.p3.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale;
-                    double surf = Math.Min(e1, Math.Min(e2, e3)) - 0.05;
+                    // Water surface is at a depression level
+                    double surf = Math.Min(e1, Math.Min(e2, e3)) - waterDepth + 0.1;
 
                     AddTriangle(waterSurfaceMesh, new Point3D(tri.p1.X, surf, tri.p1.Y), new Point3D(tri.p2.X, surf, tri.p2.Y), new Point3D(tri.p3.X, surf, tri.p3.Y));
                 }
@@ -375,8 +474,8 @@ public class MapsService : IMapsService
             for (int i = 0; i < wl.points.Count - 1; i++)
             {
                 var p1 = wl.points[i]; var p2 = wl.points[i+1];
-                double e1 = GetElevation(p1.X, p1.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale - 0.05;
-                double e2 = GetElevation(p2.X, p2.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale - 0.05;
+                double e1 = GetElevation(p1.X, p1.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale - waterDepth + 0.1;
+                double e2 = GetElevation(p2.X, p2.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale - waterDepth + 0.1;
                 AddLineSegment(waterLinesMesh, new Point3D(p1.X, e1, p1.Y), new Point3D(p2.X, e2, p2.Y), 6.0); 
             }
         }
@@ -397,21 +496,30 @@ public class MapsService : IMapsService
             foreach (var b in buildingData) { if (IsPointInPolygon(centroid, b.points)) skipBuildingIds.Add(b.way.Id); }
         }
 
+        // Building elevation offset from settings
+        double buildingOffset = 0.0;
+        if (App.AppHost != null)
+        {
+            var settings = App.AppHost.Services.GetService<IAppSettings>();
+            if (settings != null)
+            {
+                buildingOffset = settings.BuildingElevationOffset;
+            }
+        }
+
         foreach (var p in partData)
         {
-            var center = GetCentroid(p.points);
-            double baseElev = GetElevation(center.X, center.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale + 0.1;
             double buildingHeight = options.Is3DMode ? ExtractBuildingHeight(p.way.Tags, true) : 0.4;
-            RenderBuildingVolume(buildingMesh, p.points, baseElev, baseElev + buildingHeight);
+            // FIX: Render building with terrain-aware vertices for inclines
+            RenderBuildingVolumeOnTerrain(buildingMesh, p.points, buildingHeight, boundLimit, elevationGrid, usedGroundLevel, verticalScale, buildingOffset);
         }
 
         foreach (var b in buildingData)
         {
             if (skipBuildingIds.Contains(b.way.Id)) continue;
-            var center = GetCentroid(b.points);
-            double baseElev = GetElevation(center.X, center.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale + 0.1;
             double buildingHeight = options.Is3DMode ? ExtractBuildingHeight(b.way.Tags, true) : 0.4;
-            RenderBuildingVolume(buildingMesh, b.points, baseElev, baseElev + buildingHeight);
+            // FIX: Render building with terrain-aware vertices for inclines
+            RenderBuildingVolumeOnTerrain(buildingMesh, b.points, buildingHeight, boundLimit, elevationGrid, usedGroundLevel, verticalScale, buildingOffset);
         }
 
         foreach (var road in roadData)
@@ -442,6 +550,7 @@ public class MapsService : IMapsService
             group.Children.Add(new GeometryModel3D(roadMesh, roadMat) { BackMaterial = roadMat });
         }
 
+        Log($"Model generated with {group.Children.Count} elements");
         return group;
     }
 
@@ -725,6 +834,105 @@ public class MapsService : IMapsService
                 new Point3D(p2.X, maxHeight, p2.Y),
                 new Point3D(p1.X, maxHeight, p1.Y));
         }
+    }
+
+    /// <summary>
+    /// Renders a building volume that follows terrain elevation - fixes floating buildings on hills
+    /// Each corner of the building sits on the terrain at its elevation, walls follow the terrain.
+    /// </summary>
+    private void RenderBuildingVolumeOnTerrain(MeshGeometry3D mesh, List<System.Windows.Point> points, double buildingHeight,
+        double boundLimit, double[,]? elevationGrid, double groundLevel, double verticalScale, double buildingOffset = 0)
+    {
+        if (points.Count < 3) return;
+        
+        // Calculate terrain elevation at each vertex
+        var baseElevations = new List<double>();
+        double minElevation = double.MaxValue;
+        double maxElevation = double.MinValue;
+        
+        foreach (var pt in points)
+        {
+            double elev = GetElevation(pt.X, pt.Y, boundLimit, elevationGrid, groundLevel) * verticalScale + 0.1 + buildingOffset;
+            baseElevations.Add(elev);
+            minElevation = Math.Min(minElevation, elev);
+            maxElevation = Math.Max(maxElevation, elev);
+        }
+
+        // Building roof height is constant above the minimum terrain elevation
+        // This ensures buildings don't float - their base follows terrain
+        double roofHeight = minElevation + buildingHeight;
+        
+        // Ensure roof is always above all base vertices
+        if (roofHeight <= maxElevation)
+        {
+            roofHeight = maxElevation + buildingHeight * 0.5; // Minimum half height above highest corner
+        }
+
+        var triangles = TriangulatePolygon(points);
+        
+        // Add base faces (following terrain)
+        foreach (var tri in triangles)
+        {
+            int idx1 = points.FindIndex(p => p == tri.p1);
+            int idx2 = points.FindIndex(p => p == tri.p2);
+            int idx3 = points.FindIndex(p => p == tri.p3);
+            
+            // Fall back to finding closest point if exact match fails
+            if (idx1 < 0) idx1 = FindClosestPointIndex(points, tri.p1);
+            if (idx2 < 0) idx2 = FindClosestPointIndex(points, tri.p2);
+            if (idx3 < 0) idx3 = FindClosestPointIndex(points, tri.p3);
+            
+            double e1 = idx1 >= 0 && idx1 < baseElevations.Count ? baseElevations[idx1] : minElevation;
+            double e2 = idx2 >= 0 && idx2 < baseElevations.Count ? baseElevations[idx2] : minElevation;
+            double e3 = idx3 >= 0 && idx3 < baseElevations.Count ? baseElevations[idx3] : minElevation;
+            
+            AddTriangle(mesh, 
+                new Point3D(tri.p1.X, e1, tri.p1.Y),
+                new Point3D(tri.p2.X, e2, tri.p2.Y),
+                new Point3D(tri.p3.X, e3, tri.p3.Y));
+        }
+        
+        // Add roof faces (flat at roofHeight) - flipped winding for correct normal
+        foreach (var tri in triangles)
+        {
+            AddTriangle(mesh,
+                new Point3D(tri.p3.X, roofHeight, tri.p3.Y),
+                new Point3D(tri.p2.X, roofHeight, tri.p2.Y),
+                new Point3D(tri.p1.X, roofHeight, tri.p1.Y));
+        }
+        
+        // Add walls (connecting terrain-following base to flat roof)
+        for (int i = 0; i < points.Count; i++)
+        {
+            var p1 = points[i];
+            var p2 = points[(i + 1) % points.Count];
+            double e1 = baseElevations[i];
+            double e2 = baseElevations[(i + 1) % points.Count];
+            
+            // Wall is a quad from base elevation to roof
+            AddFace(mesh,
+                new Point3D(p1.X, e1, p1.Y),
+                new Point3D(p2.X, e2, p2.Y),
+                new Point3D(p2.X, roofHeight, p2.Y),
+                new Point3D(p1.X, roofHeight, p1.Y));
+        }
+    }
+
+    private int FindClosestPointIndex(List<System.Windows.Point> points, System.Windows.Point target)
+    {
+        int closestIdx = 0;
+        double closestDist = double.MaxValue;
+        for (int i = 0; i < points.Count; i++)
+        {
+            double dist = (points[i].X - target.X) * (points[i].X - target.X) + 
+                         (points[i].Y - target.Y) * (points[i].Y - target.Y);
+            if (dist < closestDist)
+            {
+                closestDist = dist;
+                closestIdx = i;
+            }
+        }
+        return closestIdx;
     }
 
 
