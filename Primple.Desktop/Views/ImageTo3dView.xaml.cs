@@ -95,6 +95,18 @@ public partial class ImageTo3dView : UserControl
                 BaseThicknessSlider.Value = 2.0;
                 StatusText.Text = "Logo preset applied. PNG with transparency works best.";
                 break;
+            case "HeightmapArt":
+                HeightSlider.Value = 2.5;
+                ResolutionSlider.Value = 200;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 2.0;
+                // Natural tones for artistic terrain
+                SliderR.Value = 160;
+                SliderG.Value = 160;
+                SliderB.Value = 140;
+                StatusText.Text = "Heightmap Art preset applied. Import grayscale image for smooth terrain.";
+                break;
             default:
                 StatusText.Text = $"Ready for {presetName}";
                 break;

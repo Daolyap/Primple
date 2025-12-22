@@ -103,7 +103,7 @@ public partial class TemplatesView : UserControl
                     NavigateToImageWithPreset(mainWindow, "TextRelief", "Text Relief preset applied. Use white text on black background.");
                     break;
                 case "HeightmapArt":
-                    NavigateToImageWithPreset(mainWindow, "Topographic", "Heightmap Art preset applied. Import grayscale image for terrain art.");
+                    NavigateToImageWithPreset(mainWindow, "HeightmapArt", "Heightmap Art preset applied. Import grayscale image for artistic terrain.");
                     break;
             }
         }

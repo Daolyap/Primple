@@ -61,7 +61,7 @@ public partial class MapsView : UserControl
             var profile = PrinterProfiles[PrinterProfileCombo.SelectedIndex];
             // Set output size to the smallest dimension (for square models)
             int smallestDim = Math.Min(profile.x, Math.Min(profile.y, profile.z));
-            OutputSizeTextBox.Text = (smallestDim - 10).ToString(); // Leave 10mm margin
+            OutputSizeTextBox.Text = Math.Max(10, smallestDim - 10).ToString(); // Leave 10mm margin, minimum 10mm
         }
     }
 
@@ -333,7 +333,8 @@ public partial class MapsView : UserControl
                 var normal = Vector3D.CrossProduct(v1, v2);
                 normal.Normalize();
 
-                if (double.IsNaN(normal.X)) normal = new Vector3D(0, 1, 0);
+                if (double.IsNaN(normal.X) || double.IsNaN(normal.Y) || double.IsNaN(normal.Z)) 
+                    normal = new Vector3D(0, 1, 0);
 
                 writer.WriteLine($"  facet normal {normal.X:F6} {normal.Y:F6} {normal.Z:F6}");
                 writer.WriteLine("    outer loop");
@@ -369,7 +370,8 @@ public partial class MapsView : UserControl
                         var normal = Vector3D.CrossProduct(v1, v2);
                         normal.Normalize();
 
-                        if (double.IsNaN(normal.X)) normal = new Vector3D(0, 1, 0);
+                        if (double.IsNaN(normal.X) || double.IsNaN(normal.Y) || double.IsNaN(normal.Z)) 
+                            normal = new Vector3D(0, 1, 0);
 
                         writer.WriteLine($"  facet normal {normal.X:F6} {normal.Y:F6} {normal.Z:F6}");
                         writer.WriteLine("    outer loop");
