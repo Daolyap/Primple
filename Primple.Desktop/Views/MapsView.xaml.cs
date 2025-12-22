@@ -107,6 +107,20 @@ public partial class MapsView : UserControl
             return;
         }
 
+        // Performance warning for large areas without dedicated GPU
+        if (RadiusSlider.Value > 3000 && GetRenderTier() < 2)
+        {
+            var result = MessageBox.Show(
+                "Large area generation (>3000m) detected on a system without dedicated GPU hardware.\n\n" +
+                "This may result in very slow generation and preview performance. Do you wish to continue?",
+                "Performance Warning",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+            
+            if (result == MessageBoxResult.No)
+                return;
+        }
+
         SetLoading(true, "Fetching data & Generating...");
 
         try
@@ -128,7 +142,11 @@ public partial class MapsView : UserControl
                     BuildingColor = ParseColor(BuildingColorHex.Text, Color.FromRgb(255, 100, 100)),
                     RoadColor = ParseColor(RoadColorHex.Text, Color.FromRgb(50, 50, 50)),
                     WaterColor = Colors.Blue, // Placeholder if needed in future
-                    BaseShape = BaseShapeCombo.SelectedIndex == 1 ? Primple.Core.Services.BaseShape.Circular : Primple.Core.Services.BaseShape.Square
+                    BaseShape = BaseShapeCombo.SelectedIndex == 1 ? Primple.Core.Services.BaseShape.Circular : Primple.Core.Services.BaseShape.Square,
+                    IncludeElevation = CheckElevation.IsChecked == true,
+                    UseGroundLevel = CheckGroundLevel.IsChecked == true,
+                    GroundLevel = GroundLevelSlider.Value,
+                    BaseThickness = BaseThicknessSlider.Value
                 };
 
                 _currentModel = await mapsService.GenerateMapModel(options);
@@ -247,5 +265,20 @@ public partial class MapsView : UserControl
     {
         LoadingOverlay.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
         if (isLoading && !string.IsNullOrEmpty(msg)) StatusText.Text = msg;
+    }
+
+    private int GetRenderTier()
+    {
+        try
+        {
+            // Tier 0: No hardware acceleration
+            // Tier 1: Some hardware acceleration (DirectX 7.0/8.0)
+            // Tier 2: Full hardware acceleration (DirectX 9.0+)
+            return RenderCapability.Tier >> 16;
+        }
+        catch
+        {
+            return 0;
+        }
     }
 }

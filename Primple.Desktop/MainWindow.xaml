@@ -39,6 +39,7 @@
                         <RadioButton Style="{DynamicResource NavButtonStyle}" Content="Map to 3D" Tag="Maps"/>
                         <RadioButton Style="{DynamicResource NavButtonStyle}" Content="Image to 3D" Tag="ImageTo3d"/>
                         <RadioButton Style="{DynamicResource NavButtonStyle}" Content="Templates" Tag="Templates"/>
+                        <RadioButton Style="{DynamicResource NavButtonStyle}" Content="Settings" Tag="Settings"/>
                     </StackPanel>
 
                     <StackPanel Grid.Row="2" Margin="20">

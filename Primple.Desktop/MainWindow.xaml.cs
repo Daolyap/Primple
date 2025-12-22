@@ -18,6 +18,7 @@ public partial class MainWindow : Window
         _views.Add("Maps", new Views.MapsView());
         _views.Add("ImageTo3d", new Views.ImageTo3dView());
         _views.Add("Templates", new Views.TemplatesView());
+        _views.Add("Settings", new Views.SettingsView());
 
         Navigate("Home");
         SetupNavigation();

@@ -1809,23 +1809,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Daolyap\\.nuget\\packages\\": {},
+    "C:\\Users\\Logan Heath\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Daolyap\\Documents\\Projects\\Primple\\Primple.Desktop\\Primple.Desktop.csproj",
+      "projectUniqueName": "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple.Desktop\\Primple.Desktop.csproj",
       "projectName": "Primple.Desktop",
-      "projectPath": "C:\\Users\\Daolyap\\Documents\\Projects\\Primple\\Primple.Desktop\\Primple.Desktop.csproj",
-      "packagesPath": "C:\\Users\\Daolyap\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Daolyap\\Documents\\Projects\\Primple\\Primple.Desktop\\obj\\",
+      "projectPath": "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple.Desktop\\Primple.Desktop.csproj",
+      "packagesPath": "C:\\Users\\Logan Heath\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple.Desktop\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Daolyap\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\NuGet.Config",
+        "C:\\Users\\Logan Heath\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -1833,15 +1834,14 @@
         "net10.0-windows"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net10.0-windows7.0": {
           "targetAlias": "net10.0-windows",
           "projectReferences": {
-            "C:\\Users\\Daolyap\\Documents\\Projects\\Primple\\Primple.Core\\Primple.Core.csproj": {
-              "projectPath": "C:\\Users\\Daolyap\\Documents\\Projects\\Primple\\Primple.Core\\Primple.Core.csproj"
+            "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple.Core\\Primple.Core.csproj": {
+              "projectPath": "C:\\Users\\Logan Heath\\Documents\\Projects\\Primple\\Primple.Core\\Primple.Core.csproj"
             }
           }
         }

@@ -24,6 +24,7 @@ public partial class App : Application
                 services.AddSingleton<Primple.Desktop.Services.ITemplateService, Primple.Desktop.Services.TemplateService>();
                 services.AddSingleton<Primple.Desktop.Services.IFigService, Primple.Desktop.Services.FigService>();
                 services.AddSingleton<Primple.Core.Services.IProjectState, Primple.Core.Services.ProjectState>();
+                services.AddSingleton<Primple.Core.Services.IAppSettings, Primple.Core.Services.AppSettings>();
             })
             .Build();
     }
@@ -35,6 +36,10 @@ public partial class App : Application
         try
         {
             await AppHost!.StartAsync();
+
+            // Load settings
+            var settings = AppHost.Services.GetService<Primple.Core.Services.IAppSettings>();
+            settings?.Load();
 
             var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
             startupForm.Show();

@@ -1,0 +1,124 @@
+<UserControl x:Class="Primple.Desktop.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="40" MaxWidth="600">
+                <TextBlock Text="Settings" FontSize="32" FontWeight="Bold" Foreground="White" Margin="0,0,0,30"/>
+                
+                <!-- Performance Section -->
+                <Border Style="{StaticResource GlassPanelStyle}" Padding="20" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="Performance" FontSize="18" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,15"/>
+                        
+                        <Grid Margin="0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Enable 3D Hardware Acceleration" Foreground="White" FontWeight="SemiBold"/>
+                                <TextBlock Text="Improves rendering performance for large STL models and complex 3D scenes." 
+                                          Foreground="#AAAAAA" TextWrapping="Wrap" FontSize="12" Margin="0,3,0,0"/>
+                            </StackPanel>
+                            
+                            <CheckBox x:Name="Enable3DAccelerationCheckBox" Grid.Column="1" 
+                                     VerticalAlignment="Center" Margin="10,0,0,0"
+                                     IsChecked="True" Checked="Settings_Changed" Unchecked="Settings_Changed"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Export Settings Section -->
+                <Border Style="{StaticResource GlassPanelStyle}" Padding="20" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="Export Settings" FontSize="18" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="Default Export Scale" Foreground="#AAAAAA" Margin="0,5,0,5"/>
+                        <DockPanel Margin="0,0,0,15">
+                            <TextBox x:Name="DefaultScaleTextBox" Text="1.0" Width="80" 
+                                    DockPanel.Dock="Right" Margin="10,0,0,0" 
+                                    Style="{StaticResource GlassTextBoxStyle}" 
+                                    Height="35" VerticalContentAlignment="Center"
+                                    TextChanged="Settings_Changed"/>
+                            <Slider x:Name="DefaultScaleSlider" Minimum="0.1" Maximum="10" Value="1.0" 
+                                   TickFrequency="0.1" IsSnapToTickEnabled="False"
+                                   ValueChanged="ScaleSlider_Changed"/>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Default Colors Section -->
+                <Border Style="{StaticResource GlassPanelStyle}" Padding="20" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="Default Colors (Maps)" FontSize="18" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,15"/>
+                        
+                        <Grid Margin="0,5">
+                            <TextBlock Text="Base/Ground Color" Foreground="White" VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Border Width="30" Height="30" BorderBrush="#888888" BorderThickness="1" Margin="0,0,10,0">
+                                    <Border.Background>
+                                        <SolidColorBrush x:Name="BaseColorPreview" Color="#C8C8C8"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox x:Name="DefaultBaseColorTextBox" Text="#C8C8C8" Width="90" 
+                                        Style="{StaticResource GlassTextBoxStyle}" 
+                                        Height="35" VerticalContentAlignment="Center"
+                                        TextChanged="ColorTextBox_Changed"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <Grid Margin="0,10,0,5">
+                            <TextBlock Text="Building Color" Foreground="White" VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Border Width="30" Height="30" BorderBrush="#888888" BorderThickness="1" Margin="0,0,10,0">
+                                    <Border.Background>
+                                        <SolidColorBrush x:Name="BuildingColorPreview" Color="#FF6464"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox x:Name="DefaultBuildingColorTextBox" Text="#FF6464" Width="90" 
+                                        Style="{StaticResource GlassTextBoxStyle}" 
+                                        Height="35" VerticalContentAlignment="Center"
+                                        TextChanged="ColorTextBox_Changed"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <Grid Margin="0,10,0,0">
+                            <TextBlock Text="Road Color" Foreground="White" VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Border Width="30" Height="30" BorderBrush="#888888" BorderThickness="1" Margin="0,0,10,0">
+                                    <Border.Background>
+                                        <SolidColorBrush x:Name="RoadColorPreview" Color="#323232"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox x:Name="DefaultRoadColorTextBox" Text="#323232" Width="90" 
+                                        Style="{StaticResource GlassTextBoxStyle}" 
+                                        Height="35" VerticalContentAlignment="Center"
+                                        TextChanged="ColorTextBox_Changed"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Actions -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                    <Button Content="Reset to Defaults" Width="150" Height="40" 
+                           Style="{StaticResource GlassButtonStyle}" 
+                           Margin="0,0,10,0" Click="ResetDefaults_Click"/>
+                    <Button Content="Save Settings" Width="150" Height="40" 
+                           Style="{StaticResource GlassButtonStyle}" 
+                           Background="{StaticResource AccentBrush}"
+                           Click="SaveSettings_Click"/>
+                </StackPanel>
+                
+                <TextBlock x:Name="StatusText" Text="" Foreground="{StaticResource AccentBrush}" 
+                          FontWeight="SemiBold" Margin="0,15,0,0" HorizontalAlignment="Right"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -26,6 +26,14 @@
                     <TextBox Text="{Binding ElementName=ResolutionSlider, Path=Value, StringFormat=N0}" Width="40" DockPanel.Dock="Right" Margin="5,0,0,0" Background="#22FFFFFF" Foreground="White" BorderThickness="0" Padding="2"/>
                     <Slider x:Name="ResolutionSlider" Minimum="50" Maximum="200" Value="100" ValueChanged="Settings_Changed"/>
                 </DockPanel>
+
+                <TextBlock Text="Projection Shape" Foreground="#AAAAAA" Margin="0,0,0,5"/>
+                <ComboBox x:Name="ShapeSelector" Margin="0,0,0,20" SelectedIndex="0" SelectionChanged="Settings_Changed">
+                    <ComboBoxItem Content="Plane"/>
+                    <ComboBoxItem Content="Sphere"/>
+                    <ComboBoxItem Content="Cube"/>
+                    <ComboBoxItem Content="Cylinder"/>
+                </ComboBox>
                 
                 <!-- Color Controls -->
                 <TextBlock Text="Material Color" Foreground="#AAAAAA" Margin="0,0,0,5"/>
@@ -55,7 +63,8 @@
         <Border Grid.Column="1" Style="{StaticResource GlassPanelStyle}" ClipToBounds="True">
             <h:HelixViewport3D x:Name="viewport" ZoomExtentsWhenLoaded="True" ShowCoordinateSystem="True" Background="Transparent">
                 <h:HelixViewport3D.DefaultCamera>
-                    <PerspectiveCamera Position="5,8,5" LookDirection="-1,-1.5,-1" UpDirection="0,1,0"/>
+                    <PerspectiveCamera Position="5,8,5" LookDirection="-1,-1.5,-1" UpDirection="0,1,0"
+                                       NearPlaneDistance="0.1" FarPlaneDistance="10000" FieldOfView="45"/>
                 </h:HelixViewport3D.DefaultCamera>
                 
                 <h:DefaultLights/>
