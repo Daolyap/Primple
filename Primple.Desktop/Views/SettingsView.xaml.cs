@@ -187,6 +187,21 @@ public partial class SettingsView : UserControl
         timer.Start();
     }
 
+    private void DebugMode_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_isLoading) return;
+        
+        SaveCurrentSettings();
+        
+        // Auto-open log window when debug mode is enabled
+        if (DebugModeCheckBox.IsChecked == true && _logService != null)
+        {
+            var logWindow = new LogViewerWindow(_logService);
+            logWindow.Owner = Window.GetWindow(this);
+            logWindow.Show();
+        }
+    }
+
     private void SaveSettings_Click(object sender, RoutedEventArgs e)
     {
         SaveCurrentSettings();

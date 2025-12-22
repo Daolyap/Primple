@@ -85,25 +85,25 @@ public partial class TemplatesView : UserControl
                     
                 // Image to 3D Templates
                 case "Logo3D":
-                    NavigateToImageWithTip(mainWindow, "Import your company logo (PNG with transparency works best). Use 'Plane' projection and adjust height scale for relief depth.");
+                    NavigateToImageWithPreset(mainWindow, "Logo3D", "Logo preset applied. Import your logo (PNG with transparency works best).");
                     break;
                 case "QRCode":
-                    NavigateToImageWithTip(mainWindow, "Import a high-contrast QR code image. Use 'Plane' or 'Cube' projection. Low height scale (0.2-0.5) works best for scannable results.");
+                    NavigateToImageWithPreset(mainWindow, "QRCode", "QR Code preset applied. Import a high-contrast QR code image.");
                     break;
                 case "Lithophane":
-                    NavigateToImageWithTip(mainWindow, "Import any photo. Use 'Plane' projection with inverted colors (or process image beforehand). Print in white filament for best backlit effect.");
+                    NavigateToImageWithPreset(mainWindow, "Lithophane", "Lithophane preset applied. Print in white filament for best backlit effect.");
                     break;
                 case "Topographic":
-                    NavigateToImageWithTip(mainWindow, "Import a grayscale heightmap image. Black = low elevation, White = high elevation. Use 'Plane' projection with higher height scale.");
+                    NavigateToImageWithPreset(mainWindow, "Topographic", "Topographic preset applied. Use grayscale heightmap image.");
                     break;
                 case "CoinDesign":
-                    NavigateToImageWithTip(mainWindow, "Import a circular design image. Use 'Plane' projection with 'Add Base' enabled. Keep height scale low (0.3-0.8) for realistic coin depth.");
+                    NavigateToImageWithPreset(mainWindow, "CoinDesign", "Coin/Medal preset applied. Import a circular design image.");
                     break;
                 case "TextRelief":
-                    NavigateToImageWithTip(mainWindow, "Create an image with text in white on black background. Use 'Plane' projection. Text will be raised on the model surface.");
+                    NavigateToImageWithPreset(mainWindow, "TextRelief", "Text Relief preset applied. Use white text on black background.");
                     break;
                 case "HeightmapArt":
-                    NavigateToImageWithTip(mainWindow, "Import any grayscale image for artistic terrain. Use 'Plane' projection with high resolution for smooth landscapes.");
+                    NavigateToImageWithPreset(mainWindow, "Topographic", "Heightmap Art preset applied. Import grayscale image for terrain art.");
                     break;
             }
         }
@@ -135,5 +135,16 @@ public partial class TemplatesView : UserControl
     {
         mainWindow.Navigate("ImageTo3d");
         StatusText.Text = $"💡 Tip: {tip}";
+    }
+
+    private void NavigateToImageWithPreset(MainWindow mainWindow, string presetName, string tip)
+    {
+        var imageView = mainWindow.GetView("ImageTo3d") as ImageTo3dView;
+        if (imageView != null)
+        {
+            imageView.ApplyPreset(presetName);
+        }
+        mainWindow.Navigate("ImageTo3d");
+        StatusText.Text = $"💡 {tip}";
     }
 }

@@ -6,6 +6,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Hero Section -->
@@ -71,6 +72,20 @@
                     </StackPanel>
                 </Border>
             </WrapPanel>
+            
+            <!-- Contact/Footer Section -->
+            <Border Grid.Row="2" Style="{StaticResource GlassPanelStyle}" Padding="20" Margin="0,20,0,0" HorizontalAlignment="Center">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="📧" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="Questions or feedback? Contact us at " Foreground="#AAFFFFFF" FontSize="13" VerticalAlignment="Center"/>
+                    <TextBlock Text="contact@daolyap.dev" Foreground="{StaticResource AccentBrush}" FontSize="13" FontWeight="SemiBold" 
+                              VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="ContactEmail_Click">
+                        <TextBlock.TextDecorations>
+                            <TextDecoration Location="Underline"/>
+                        </TextBlock.TextDecorations>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
         </Grid>
     </ScrollViewer>
 </UserControl>

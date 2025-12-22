@@ -380,6 +380,9 @@ public class MapsService : IMapsService
         double step = size / (gridDivs - 1);
         double verticalScale = 5.0; 
 
+        // Scale water depth proportionally to make it visible
+        double scaledWaterDepth = waterDepth * verticalScale;
+
         // Create Grid of Vertices
         for (int i = 0; i < gridDivs; i++)
         {
@@ -400,10 +403,10 @@ public class MapsService : IMapsService
                 // Vertex Dipping: Carve riverbeds into the mesh for proper 3D printing
                 var pt = new System.Windows.Point(x, z);
                 bool inWater = waterData.Any(w => w.points.Count >= 3 && IsPointInPolygon(pt, w.points)) ||
-                             waterLines.Any(wl => IsPointNearLine(pt, wl.points, 4.0)); // 4m radius for rivers
+                             waterLines.Any(wl => IsPointNearLine(pt, wl.points, 8.0)); // 8m radius for rivers (wider)
                 
-                // Water is a depression - important for 3D printing
-                if (inWater) elev -= waterDepth;
+                // Water is a depression - cut down significantly for 3D printing visibility
+                if (inWater) elev -= scaledWaterDepth;
 
                 groundMesh.Positions.Add(new Point3D(x, elev, z));
             }
@@ -461,8 +464,8 @@ public class MapsService : IMapsService
                     double e1 = GetElevation(tri.p1.X, tri.p1.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale;
                     double e2 = GetElevation(tri.p2.X, tri.p2.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale;
                     double e3 = GetElevation(tri.p3.X, tri.p3.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale;
-                    // Water surface is at a depression level
-                    double surf = Math.Min(e1, Math.Min(e2, e3)) - waterDepth + 0.1;
+                    // Water surface sits at the carved depression level (slightly above bottom for visibility)
+                    double surf = Math.Min(e1, Math.Min(e2, e3)) - scaledWaterDepth + 0.5;
 
                     AddTriangle(waterSurfaceMesh, new Point3D(tri.p1.X, surf, tri.p1.Y), new Point3D(tri.p2.X, surf, tri.p2.Y), new Point3D(tri.p3.X, surf, tri.p3.Y));
                 }
@@ -474,9 +477,9 @@ public class MapsService : IMapsService
             for (int i = 0; i < wl.points.Count - 1; i++)
             {
                 var p1 = wl.points[i]; var p2 = wl.points[i+1];
-                double e1 = GetElevation(p1.X, p1.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale - waterDepth + 0.1;
-                double e2 = GetElevation(p2.X, p2.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale - waterDepth + 0.1;
-                AddLineSegment(waterLinesMesh, new Point3D(p1.X, e1, p1.Y), new Point3D(p2.X, e2, p2.Y), 6.0); 
+                double e1 = GetElevation(p1.X, p1.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale - scaledWaterDepth + 0.5;
+                double e2 = GetElevation(p2.X, p2.Y, boundLimit, elevationGrid, usedGroundLevel) * verticalScale - scaledWaterDepth + 0.5;
+                AddLineSegment(waterLinesMesh, new Point3D(p1.X, e1, p1.Y), new Point3D(p2.X, e2, p2.Y), 10.0); // Wider rivers
             }
         }
 

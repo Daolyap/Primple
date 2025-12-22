@@ -177,13 +177,13 @@
                             
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Debug Mode" Foreground="White" FontWeight="SemiBold"/>
-                                <TextBlock Text="Enable detailed logging and error display. Shows a log window when errors occur." 
+                                <TextBlock Text="Enable detailed logging. Automatically opens a live log window when enabled." 
                                           Foreground="#AAAAAA" TextWrapping="Wrap" FontSize="12" Margin="0,3,0,0"/>
                             </StackPanel>
                             
                             <CheckBox x:Name="DebugModeCheckBox" Grid.Column="1" 
                                      VerticalAlignment="Center" Margin="10,0,0,0"
-                                     IsChecked="False" Checked="Settings_Changed" Unchecked="Settings_Changed"/>
+                                     IsChecked="False" Checked="DebugMode_Checked" Unchecked="Settings_Changed"/>
                         </Grid>
 
                         <Button x:Name="ViewLogsButton" Content="View Debug Logs" Height="35" Width="150"

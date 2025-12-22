@@ -28,6 +28,79 @@ public partial class ImageTo3dView : UserControl
         }
     }
 
+    /// <summary>
+    /// Apply preset configuration for different use cases
+    /// </summary>
+    public void ApplyPreset(string presetName)
+    {
+        switch (presetName)
+        {
+            case "QRCode":
+                HeightSlider.Value = 0.3;
+                ResolutionSlider.Value = 150;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 1.5;
+                StatusText.Text = "QR Code preset applied. Use high-contrast black/white image for best results.";
+                break;
+            case "Lithophane":
+                HeightSlider.Value = 2.5;
+                ResolutionSlider.Value = 200;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 0.8;
+                // Set to white color for lithophane
+                SliderR.Value = 255;
+                SliderG.Value = 255;
+                SliderB.Value = 255;
+                StatusText.Text = "Lithophane preset applied. Print in white filament for best backlit effect.";
+                break;
+            case "CoinDesign":
+                HeightSlider.Value = 0.5;
+                ResolutionSlider.Value = 150;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 2.0;
+                // Gold-ish color
+                SliderR.Value = 212;
+                SliderG.Value = 175;
+                SliderB.Value = 55;
+                StatusText.Text = "Coin/Medal preset applied. Import a circular design for best results.";
+                break;
+            case "TextRelief":
+                HeightSlider.Value = 1.0;
+                ResolutionSlider.Value = 120;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 1.5;
+                StatusText.Text = "Text Relief preset applied. Use white text on black background.";
+                break;
+            case "Topographic":
+                HeightSlider.Value = 3.0;
+                ResolutionSlider.Value = 180;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 2.0;
+                // Earth tones
+                SliderR.Value = 139;
+                SliderG.Value = 119;
+                SliderB.Value = 101;
+                StatusText.Text = "Topographic preset applied. Use grayscale heightmap (black=low, white=high).";
+                break;
+            case "Logo3D":
+                HeightSlider.Value = 1.5;
+                ResolutionSlider.Value = 150;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 2.0;
+                StatusText.Text = "Logo preset applied. PNG with transparency works best.";
+                break;
+            default:
+                StatusText.Text = $"Ready for {presetName}";
+                break;
+        }
+    }
+
     private void Log(string message, string level = "INFO")
     {
         _logService?.Log(message, "ImageTo3D", level);

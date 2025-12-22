@@ -4,7 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media.Media3D;
 using System.Windows.Media;
 using Primple.Core.Services;
-using Microsoft.Extensions.DependencyInjection; // Ensure using for GetService/GetRequiredService
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Primple.Desktop.Views;
 
@@ -14,6 +14,21 @@ public partial class MapsView : UserControl
     private double _currentLon;
     private bool _hasLocation;
     private Model3DGroup? _currentModel;
+
+    // Printer profiles: (name, buildVolumeX, buildVolumeY, buildVolumeZ)
+    private static readonly (string name, int x, int y, int z)[] PrinterProfiles = new[]
+    {
+        ("Custom", 0, 0, 0),
+        ("Bambu Lab A1", 256, 256, 256),
+        ("Bambu Lab P1S", 256, 256, 256),
+        ("Bambu Lab X1C", 256, 256, 256),
+        ("Prusa MK4", 250, 210, 220),
+        ("Prusa Mini", 180, 180, 180),
+        ("Creality Ender 3", 220, 220, 250),
+        ("Creality K1", 220, 220, 250),
+        ("Anycubic Kobra 2", 220, 220, 250),
+        ("Elegoo Neptune 4", 225, 225, 265)
+    };
 
     public void SetLocation(double lat, double lon, string name, double radius)
     {
@@ -37,6 +52,17 @@ public partial class MapsView : UserControl
     public MapsView()
     {
         InitializeComponent();
+    }
+
+    private void PrinterProfile_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (PrinterProfileCombo.SelectedIndex > 0 && PrinterProfileCombo.SelectedIndex < PrinterProfiles.Length)
+        {
+            var profile = PrinterProfiles[PrinterProfileCombo.SelectedIndex];
+            // Set output size to the smallest dimension (for square models)
+            int smallestDim = Math.Min(profile.x, Math.Min(profile.y, profile.z));
+            OutputSizeTextBox.Text = (smallestDim - 10).ToString(); // Leave 10mm margin
+        }
     }
 
     private async void SearchButton_Click(object sender, RoutedEventArgs e)
@@ -149,7 +175,7 @@ public partial class MapsView : UserControl
                     BaseColor = ParseColor(BaseColorHex.Text, Color.FromRgb(200, 200, 200)),
                     BuildingColor = ParseColor(BuildingColorHex.Text, Color.FromRgb(255, 100, 100)),
                     RoadColor = ParseColor(RoadColorHex.Text, Color.FromRgb(50, 50, 50)),
-                    WaterColor = Colors.Blue, // Placeholder if needed in future
+                    WaterColor = Colors.Blue,
                     BaseShape = BaseShapeCombo.SelectedIndex == 1 ? Primple.Core.Services.BaseShape.Circular : Primple.Core.Services.BaseShape.Square,
                     IncludeElevation = CheckElevation.IsChecked == true,
                     UseGroundLevel = CheckGroundLevel.IsChecked == true,
@@ -217,7 +243,6 @@ public partial class MapsView : UserControl
 
             if (dialog.ShowDialog() == true)
             {
-                // Export to STL using HelixToolkit or custom exporter
                 StatusText.Text = "Exporting STL...";
                 ExportModelToSTL(_currentModel, dialog.FileName, scale);
                 StatusText.Text = $"Exported to {System.IO.Path.GetFileName(dialog.FileName)}";
@@ -231,6 +256,98 @@ public partial class MapsView : UserControl
         }
     }
 
+    private void ExportMultiColor_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentModel == null)
+        {
+            MessageBox.Show("Generate a model first.");
+            return;
+        }
+
+        try
+        {
+            double scale = 1.0;
+            if (double.TryParse(ScaleTextBox.Text, out double s)) scale = s;
+
+            // Let user choose a folder
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "STL Files (*.stl)|*.stl",
+                DefaultExt = ".stl",
+                FileName = $"Map_{SearchBox.Text.Replace(" ", "_")}_terrain.stl",
+                Title = "Choose base filename for multi-color export"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                StatusText.Text = "Exporting multi-color STLs...";
+                
+                string basePath = System.IO.Path.GetDirectoryName(dialog.FileName) ?? "";
+                string baseName = System.IO.Path.GetFileNameWithoutExtension(dialog.FileName).Replace("_terrain", "");
+                
+                // Export each component separately
+                // Component order in Model3DGroup: 0=base, 1=ground, 2=water (optional), 3+=buildings, roads
+                int exported = 0;
+                string[] componentNames = { "base", "terrain", "water", "buildings", "roads" };
+                
+                for (int i = 0; i < _currentModel.Children.Count && i < componentNames.Length; i++)
+                {
+                    if (_currentModel.Children[i] is GeometryModel3D geoModel && geoModel.Geometry is MeshGeometry3D mesh)
+                    {
+                        if (mesh.Positions.Count == 0) continue;
+                        
+                        string fileName = System.IO.Path.Combine(basePath, $"{baseName}_{componentNames[i]}.stl");
+                        ExportSingleMeshToSTL(mesh, fileName, scale, componentNames[i]);
+                        exported++;
+                    }
+                }
+                
+                StatusText.Text = $"Exported {exported} STL files for multi-color printing!";
+                MessageBox.Show(
+                    $"Exported {exported} separate STL files to:\n{basePath}\n\n" +
+                    "Import all files into your slicer (e.g., Bambu Studio) as a single project to assign different colors/materials.",
+                    "Multi-Color Export Complete");
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "Export Error: " + ex.Message;
+            MessageBox.Show($"Error exporting multi-color STLs:\n{ex.Message}", "Export Error");
+        }
+    }
+
+    private void ExportSingleMeshToSTL(MeshGeometry3D mesh, string fileName, double scale, string solidName)
+    {
+        using (var writer = new System.IO.StreamWriter(fileName))
+        {
+            writer.WriteLine($"solid {solidName}");
+
+            for (int i = 0; i < mesh.TriangleIndices.Count; i += 3)
+            {
+                var p1 = mesh.Positions[mesh.TriangleIndices[i]];
+                var p2 = mesh.Positions[mesh.TriangleIndices[i + 1]];
+                var p3 = mesh.Positions[mesh.TriangleIndices[i + 2]];
+
+                var v1 = new Vector3D(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
+                var v2 = new Vector3D(p3.X - p1.X, p3.Y - p1.Y, p3.Z - p1.Z);
+                var normal = Vector3D.CrossProduct(v1, v2);
+                normal.Normalize();
+
+                if (double.IsNaN(normal.X)) normal = new Vector3D(0, 1, 0);
+
+                writer.WriteLine($"  facet normal {normal.X:F6} {normal.Y:F6} {normal.Z:F6}");
+                writer.WriteLine("    outer loop");
+                writer.WriteLine($"      vertex {p1.X * scale:F6} {p1.Y * scale:F6} {p1.Z * scale:F6}");
+                writer.WriteLine($"      vertex {p2.X * scale:F6} {p2.Y * scale:F6} {p2.Z * scale:F6}");
+                writer.WriteLine($"      vertex {p3.X * scale:F6} {p3.Y * scale:F6} {p3.Z * scale:F6}");
+                writer.WriteLine("    endloop");
+                writer.WriteLine("  endfacet");
+            }
+
+            writer.WriteLine($"endsolid {solidName}");
+        }
+    }
+
     private void ExportModelToSTL(Model3DGroup model, string fileName, double scale)
     {
         using (var writer = new System.IO.StreamWriter(fileName))
@@ -241,18 +358,18 @@ public partial class MapsView : UserControl
             {
                 if (child is GeometryModel3D geoModel && geoModel.Geometry is MeshGeometry3D mesh)
                 {
-                    // Write triangles
                     for (int i = 0; i < mesh.TriangleIndices.Count; i += 3)
                     {
                         var p1 = mesh.Positions[mesh.TriangleIndices[i]];
                         var p2 = mesh.Positions[mesh.TriangleIndices[i + 1]];
                         var p3 = mesh.Positions[mesh.TriangleIndices[i + 2]];
 
-                        // Calculate normal
                         var v1 = new Vector3D(p2.X - p1.X, p2.Y - p1.Y, p2.Z - p1.Z);
                         var v2 = new Vector3D(p3.X - p1.X, p3.Y - p1.Y, p3.Z - p1.Z);
                         var normal = Vector3D.CrossProduct(v1, v2);
                         normal.Normalize();
+
+                        if (double.IsNaN(normal.X)) normal = new Vector3D(0, 1, 0);
 
                         writer.WriteLine($"  facet normal {normal.X:F6} {normal.Y:F6} {normal.Z:F6}");
                         writer.WriteLine("    outer loop");
@@ -279,9 +396,6 @@ public partial class MapsView : UserControl
     {
         try
         {
-            // Tier 0: No hardware acceleration
-            // Tier 1: Some hardware acceleration (DirectX 7.0/8.0)
-            // Tier 2: Full hardware acceleration (DirectX 9.0+)
             return RenderCapability.Tier >> 16;
         }
         catch
