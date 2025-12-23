@@ -380,8 +380,11 @@ public class MapsService : IMapsService
         double step = size / (gridDivs - 1);
         double verticalScale = 5.0; 
 
-        // Scale water depth proportionally to make it visible
-        double scaledWaterDepth = waterDepth * verticalScale;
+        // Scale water depth proportionally to make it visible - increased for better visibility
+        double scaledWaterDepth = waterDepth * verticalScale * 2.0; // Double the effect for visibility
+
+        // Track which grid cells are inside the boundary (for circular clipping)
+        bool[,] insideBoundary = new bool[gridDivs, gridDivs];
 
         // Create Grid of Vertices
         for (int i = 0; i < gridDivs; i++)
@@ -391,7 +394,17 @@ public class MapsService : IMapsService
                 double x = -boundLimit + (i * step);
                 double z = -boundLimit + (j * step);
                 
-                if (options.BaseShape == BaseShape.Circular && (Math.Sqrt(x * x + z * z) > boundLimit))
+                // Check if point is inside the boundary shape
+                bool isInside = true;
+                if (options.BaseShape == BaseShape.Circular)
+                {
+                    double distFromCenter = Math.Sqrt(x * x + z * z);
+                    isInside = distFromCenter <= boundLimit;
+                }
+                insideBoundary[i, j] = isInside;
+                
+                // For points outside the circular boundary, place at base level (will be clipped)
+                if (!isInside)
                 {
                     groundMesh.Positions.Add(new Point3D(x, baseLevel, z)); 
                     continue;
@@ -402,17 +415,18 @@ public class MapsService : IMapsService
 
                 // Vertex Dipping: Carve riverbeds into the mesh for proper 3D printing
                 var pt = new System.Windows.Point(x, z);
-                bool inWater = waterData.Any(w => w.points.Count >= 3 && IsPointInPolygon(pt, w.points)) ||
-                             waterLines.Any(wl => IsPointNearLine(pt, wl.points, 8.0)); // 8m radius for rivers (wider)
                 
                 // Water is a depression - cut down significantly for 3D printing visibility
-                if (inWater) elev -= scaledWaterDepth;
+                if (IsPointInWater(pt, waterData, waterLines)) 
+                {
+                    elev -= scaledWaterDepth;
+                }
 
                 groundMesh.Positions.Add(new Point3D(x, elev, z));
             }
         }
 
-        // Create Triangles & Skirt
+        // Create Triangles & Skirt - only for cells inside the boundary
         for (int i = 0; i < gridDivs - 1; i++)
         {
             for (int j = 0; j < gridDivs - 1; j++)
@@ -422,26 +436,48 @@ public class MapsService : IMapsService
                 int i2 = i * gridDivs + (j + 1);
                 int i3 = (i + 1) * gridDivs + (j + 1);
 
-                // Always add triangles (no more blocky cutouts)
+                // For circular base, only create triangles for cells where at least some vertices are inside
+                if (options.BaseShape == BaseShape.Circular)
+                {
+                    bool anyInside = insideBoundary[i, j] || insideBoundary[i + 1, j] || 
+                                    insideBoundary[i, j + 1] || insideBoundary[i + 1, j + 1];
+                    if (!anyInside) continue;
+                }
+
+                // Add triangles
                 groundMesh.TriangleIndices.Add(i0); groundMesh.TriangleIndices.Add(i1); groundMesh.TriangleIndices.Add(i2);
                 groundMesh.TriangleIndices.Add(i1); groundMesh.TriangleIndices.Add(i3); groundMesh.TriangleIndices.Add(i2);
-
-                // Add Skirt on Perimeter
-                bool edgeTop = (j == 0);
-                bool edgeBottom = (j == gridDivs - 2);
-                bool edgeLeft = (i == 0);
-                bool edgeRight = (i == gridDivs - 2);
-
-                if (edgeTop || edgeBottom || edgeLeft || edgeRight)
+            }
+        }
+        
+        // Add circular skirt for circular base shape
+        if (options.BaseShape == BaseShape.Circular)
+        {
+            AddCircularSkirt(groundMesh, boundLimit, baseLevel, gridDivs, step, insideBoundary, elevationGrid, usedGroundLevel, verticalScale, waterData, waterLines, scaledWaterDepth);
+        }
+        else
+        {
+            // Square skirt
+            for (int i = 0; i < gridDivs - 1; i++)
+            {
+                for (int j = 0; j < gridDivs - 1; j++)
                 {
-                    void AddSkirtQuad(int idxA, int idxB) {
-                         var pA = groundMesh.Positions[idxA]; var pB = groundMesh.Positions[idxB];
-                         AddFace(groundMesh, pA, pB, new Point3D(pB.X, baseLevel, pB.Z), new Point3D(pA.X, baseLevel, pA.Z));
+                    bool edgeTop = (j == 0);
+                    bool edgeBottom = (j == gridDivs - 2);
+                    bool edgeLeft = (i == 0);
+                    bool edgeRight = (i == gridDivs - 2);
+
+                    if (edgeTop || edgeBottom || edgeLeft || edgeRight)
+                    {
+                        void AddSkirtQuad(int idxA, int idxB) {
+                             var pA = groundMesh.Positions[idxA]; var pB = groundMesh.Positions[idxB];
+                             AddFace(groundMesh, pA, pB, new Point3D(pB.X, baseLevel, pB.Z), new Point3D(pA.X, baseLevel, pA.Z));
+                        }
+                        if (edgeTop) AddSkirtQuad(i * gridDivs, (i+1) * gridDivs);
+                        if (edgeBottom) AddSkirtQuad((i+1) * gridDivs + (gridDivs-1), i * gridDivs + (gridDivs-1));
+                        if (edgeLeft) AddSkirtQuad(j + 1, j);
+                        if (edgeRight) AddSkirtQuad((gridDivs-1) * gridDivs + j, (gridDivs-1) * gridDivs + j + 1);
                     }
-                    if (edgeTop) AddSkirtQuad(i * gridDivs, (i+1) * gridDivs);
-                    if (edgeBottom) AddSkirtQuad((i+1) * gridDivs + (gridDivs-1), i * gridDivs + (gridDivs-1));
-                    if (edgeLeft) AddSkirtQuad(j + 1, j);
-                    if (edgeRight) AddSkirtQuad((gridDivs-1) * gridDivs + j, (gridDivs-1) * gridDivs + j + 1);
                 }
             }
         }
@@ -619,6 +655,49 @@ public class MapsService : IMapsService
             mesh.TriangleIndices.Add(b2);
             mesh.TriangleIndices.Add(t1);
             mesh.TriangleIndices.Add(t2);
+        }
+    }
+
+    /// <summary>
+    /// Adds a circular skirt connecting the terrain edge to the base level
+    /// </summary>
+    private void AddCircularSkirt(MeshGeometry3D groundMesh, double boundLimit, double baseLevel, int gridDivs, double step,
+        bool[,] insideBoundary, double[,]? elevationGrid, double usedGroundLevel, double verticalScale,
+        List<(OsmElement way, List<System.Windows.Point> points)> waterData,
+        List<(OsmElement way, List<System.Windows.Point> points)> waterLines,
+        double scaledWaterDepth)
+    {
+        // Find boundary vertices and connect them to the base
+        const int CircularSkirtSegments = 64;
+        for (int seg = 0; seg < CircularSkirtSegments; seg++)
+        {
+            double angle1 = (seg / (double)CircularSkirtSegments) * 2 * Math.PI;
+            double angle2 = ((seg + 1) / (double)CircularSkirtSegments) * 2 * Math.PI;
+            
+            double x1 = boundLimit * Math.Cos(angle1);
+            double z1 = boundLimit * Math.Sin(angle1);
+            double x2 = boundLimit * Math.Cos(angle2);
+            double z2 = boundLimit * Math.Sin(angle2);
+            
+            // Get terrain elevation at edge points
+            double rawElev1 = GetElevation(x1, z1, boundLimit, elevationGrid, usedGroundLevel);
+            double rawElev2 = GetElevation(x2, z2, boundLimit, elevationGrid, usedGroundLevel);
+            double elev1 = Math.Max(-0.2, rawElev1) * verticalScale;
+            double elev2 = Math.Max(-0.2, rawElev2) * verticalScale;
+            
+            // Check if edge points are in water using helper method
+            var pt1 = new System.Windows.Point(x1, z1);
+            var pt2 = new System.Windows.Point(x2, z2);
+            
+            if (IsPointInWater(pt1, waterData, waterLines)) elev1 -= scaledWaterDepth;
+            if (IsPointInWater(pt2, waterData, waterLines)) elev2 -= scaledWaterDepth;
+            
+            // Create skirt quad from terrain edge down to base
+            AddFace(groundMesh,
+                new Point3D(x1, elev1, z1),
+                new Point3D(x2, elev2, z2),
+                new Point3D(x2, baseLevel, z2),
+                new Point3D(x1, baseLevel, z1));
         }
     }
 
@@ -1097,5 +1176,18 @@ public class MapsService : IMapsService
             if (d2 < distance * distance) return true;
         }
         return false;
+    }
+
+    private const double WaterDetectionRadius = 12.0; // Meters radius for waterway detection
+
+    /// <summary>
+    /// Checks if a point is in water (either in a water polygon or near a waterway line)
+    /// </summary>
+    private bool IsPointInWater(System.Windows.Point pt, 
+        List<(OsmElement way, List<System.Windows.Point> points)> waterData,
+        List<(OsmElement way, List<System.Windows.Point> points)> waterLines)
+    {
+        return waterData.Any(w => w.points.Count >= 3 && IsPointInPolygon(pt, w.points)) ||
+               waterLines.Any(wl => IsPointNearLine(pt, wl.points, WaterDetectionRadius));
     }
 }
