@@ -4,12 +4,36 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="800">
+             d:DesignHeight="800" d:DesignWidth="900">
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="40" MaxWidth="600">
+            <StackPanel Margin="40" MaxWidth="700">
                 <TextBlock Text="Settings" FontSize="32" FontWeight="Bold" Foreground="White" Margin="0,0,0,30"/>
                 
+                <!-- Application Settings Section -->
+                <Border Style="{StaticResource GlassPanelStyle}" Padding="20" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="Application" FontSize="18" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,15"/>
+                        
+                        <Grid Margin="0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Start Maximized" Foreground="White" FontWeight="SemiBold"/>
+                                <TextBlock Text="Launch the application in full-screen mode." 
+                                          Foreground="#AAAAAA" TextWrapping="Wrap" FontSize="12" Margin="0,3,0,0"/>
+                            </StackPanel>
+                            
+                            <CheckBox x:Name="StartMaximizedCheckBox" Grid.Column="1" 
+                                     VerticalAlignment="Center" Margin="10,0,0,0"
+                                     IsChecked="True" Checked="Settings_Changed" Unchecked="Settings_Changed"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
                 <!-- Performance Section -->
                 <Border Style="{StaticResource GlassPanelStyle}" Padding="20" Margin="0,0,0,20">
                     <StackPanel>
@@ -52,6 +76,41 @@
                         </DockPanel>
                     </StackPanel>
                 </Border>
+
+                <!-- 3D Model Settings Section -->
+                <Border Style="{StaticResource GlassPanelStyle}" Padding="20" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="3D Model Generation" FontSize="18" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="Water Depth (mm)" Foreground="#AAAAAA" Margin="0,5,0,5"/>
+                        <TextBlock Text="How deep water bodies are carved into the terrain for 3D printing." 
+                                  Foreground="#666666" FontSize="11" Margin="0,0,0,5"/>
+                        <DockPanel Margin="0,0,0,15">
+                            <TextBox x:Name="WaterDepthTextBox" Text="2.0" Width="80" 
+                                    DockPanel.Dock="Right" Margin="10,0,0,0" 
+                                    Style="{StaticResource GlassTextBoxStyle}" 
+                                    Height="35" VerticalContentAlignment="Center"
+                                    TextChanged="Settings_Changed"/>
+                            <Slider x:Name="WaterDepthSlider" Minimum="0.5" Maximum="10" Value="2.0" 
+                                   TickFrequency="0.5" IsSnapToTickEnabled="True"
+                                   ValueChanged="WaterDepthSlider_Changed"/>
+                        </DockPanel>
+
+                        <TextBlock Text="Building Elevation Offset" Foreground="#AAAAAA" Margin="0,5,0,5"/>
+                        <TextBlock Text="Adjusts how buildings sit on terrain. Negative values sink buildings into the ground." 
+                                  Foreground="#666666" FontSize="11" Margin="0,0,0,5"/>
+                        <DockPanel Margin="0,0,0,15">
+                            <TextBox x:Name="BuildingOffsetTextBox" Text="0.0" Width="80" 
+                                    DockPanel.Dock="Right" Margin="10,0,0,0" 
+                                    Style="{StaticResource GlassTextBoxStyle}" 
+                                    Height="35" VerticalContentAlignment="Center"
+                                    TextChanged="Settings_Changed"/>
+                            <Slider x:Name="BuildingOffsetSlider" Minimum="-5" Maximum="5" Value="0" 
+                                   TickFrequency="0.5" IsSnapToTickEnabled="True"
+                                   ValueChanged="BuildingOffsetSlider_Changed"/>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
                 
                 <!-- Default Colors Section -->
                 <Border Style="{StaticResource GlassPanelStyle}" Padding="20" Margin="0,0,0,20">
@@ -61,12 +120,12 @@
                         <Grid Margin="0,5">
                             <TextBlock Text="Base/Ground Color" Foreground="White" VerticalAlignment="Center"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Border Width="30" Height="30" BorderBrush="#888888" BorderThickness="1" Margin="0,0,10,0">
+                                <Border Width="30" Height="30" BorderBrush="#888888" BorderThickness="1" Margin="0,0,10,0" CornerRadius="4">
                                     <Border.Background>
                                         <SolidColorBrush x:Name="BaseColorPreview" Color="#C8C8C8"/>
                                     </Border.Background>
                                 </Border>
-                                <TextBox x:Name="DefaultBaseColorTextBox" Text="#C8C8C8" Width="90" 
+                                <TextBox x:Name="DefaultBaseColorTextBox" Text="#C8C8C8" Width="100" 
                                         Style="{StaticResource GlassTextBoxStyle}" 
                                         Height="35" VerticalContentAlignment="Center"
                                         TextChanged="ColorTextBox_Changed"/>
@@ -76,12 +135,12 @@
                         <Grid Margin="0,10,0,5">
                             <TextBlock Text="Building Color" Foreground="White" VerticalAlignment="Center"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Border Width="30" Height="30" BorderBrush="#888888" BorderThickness="1" Margin="0,0,10,0">
+                                <Border Width="30" Height="30" BorderBrush="#888888" BorderThickness="1" Margin="0,0,10,0" CornerRadius="4">
                                     <Border.Background>
                                         <SolidColorBrush x:Name="BuildingColorPreview" Color="#FF6464"/>
                                     </Border.Background>
                                 </Border>
-                                <TextBox x:Name="DefaultBuildingColorTextBox" Text="#FF6464" Width="90" 
+                                <TextBox x:Name="DefaultBuildingColorTextBox" Text="#FF6464" Width="100" 
                                         Style="{StaticResource GlassTextBoxStyle}" 
                                         Height="35" VerticalContentAlignment="Center"
                                         TextChanged="ColorTextBox_Changed"/>
@@ -91,17 +150,46 @@
                         <Grid Margin="0,10,0,0">
                             <TextBlock Text="Road Color" Foreground="White" VerticalAlignment="Center"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Border Width="30" Height="30" BorderBrush="#888888" BorderThickness="1" Margin="0,0,10,0">
+                                <Border Width="30" Height="30" BorderBrush="#888888" BorderThickness="1" Margin="0,0,10,0" CornerRadius="4">
                                     <Border.Background>
                                         <SolidColorBrush x:Name="RoadColorPreview" Color="#323232"/>
                                     </Border.Background>
                                 </Border>
-                                <TextBox x:Name="DefaultRoadColorTextBox" Text="#323232" Width="90" 
+                                <TextBox x:Name="DefaultRoadColorTextBox" Text="#323232" Width="100" 
                                         Style="{StaticResource GlassTextBoxStyle}" 
                                         Height="35" VerticalContentAlignment="Center"
                                         TextChanged="ColorTextBox_Changed"/>
                             </StackPanel>
                         </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Debug Section -->
+                <Border Style="{StaticResource GlassPanelStyle}" Padding="20" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="Developer Options" FontSize="18" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,15"/>
+                        
+                        <Grid Margin="0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Debug Mode" Foreground="White" FontWeight="SemiBold"/>
+                                <TextBlock Text="Enable detailed logging. Automatically opens a live log window when enabled." 
+                                          Foreground="#AAAAAA" TextWrapping="Wrap" FontSize="12" Margin="0,3,0,0"/>
+                            </StackPanel>
+                            
+                            <CheckBox x:Name="DebugModeCheckBox" Grid.Column="1" 
+                                     VerticalAlignment="Center" Margin="10,0,0,0"
+                                     IsChecked="False" Checked="DebugMode_Checked" Unchecked="Settings_Changed"/>
+                        </Grid>
+
+                        <Button x:Name="ViewLogsButton" Content="View Debug Logs" Height="35" Width="150"
+                               Style="{StaticResource GlassButtonStyle}" 
+                               HorizontalAlignment="Left" Margin="0,15,0,0"
+                               Click="ViewLogs_Click"/>
                     </StackPanel>
                 </Border>
                 

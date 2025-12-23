@@ -1,10 +1,91 @@
 <UserControl x:Class="Primple.Desktop.Views.HomeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="Welcome to Primple" Foreground="White" FontSize="32" Margin="0,0,0,20"/>
-            <TextBlock Text="Select a tool to begin." Foreground="#AAFFFFFF" FontSize="16"/>
-        </StackPanel>
-    </Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="40">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Hero Section -->
+            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,40,0,60">
+                <TextBlock Text="Welcome to Primple" Foreground="White" FontSize="42" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+                <TextBlock Text="Transform maps and images into stunning 3D printable models" 
+                          Foreground="#AAFFFFFF" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+                
+                <!-- Quick Action Buttons -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Content="🗺️  Create Map Model" Style="{StaticResource GlassButtonStyle}" 
+                           Width="200" Height="50" Margin="0,0,20,0" 
+                           Background="{StaticResource AccentBrush}"
+                           Click="NavigateToMaps_Click"/>
+                    <Button Content="🖼️  Image to 3D" Style="{StaticResource GlassButtonStyle}" 
+                           Width="200" Height="50" Margin="0,0,20,0"
+                           Click="NavigateToImageTo3d_Click"/>
+                    <Button Content="📋  Templates" Style="{StaticResource GlassButtonStyle}" 
+                           Width="200" Height="50"
+                           Click="NavigateToTemplates_Click"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Feature Cards -->
+            <WrapPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,40">
+                <!-- Map to 3D Card -->
+                <Border Style="{StaticResource GlassPanelStyle}" Width="280" Height="200" Margin="15" Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="🗺️" FontSize="32" Margin="0,0,0,10"/>
+                        <TextBlock Text="Map to 3D" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                        <TextBlock Text="Generate detailed 3D models from real-world locations. Includes buildings, roads, terrain elevation, and water bodies." 
+                                  Foreground="#AAFFFFFF" TextWrapping="Wrap" FontSize="12"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Image to 3D Card -->
+                <Border Style="{StaticResource GlassPanelStyle}" Width="280" Height="200" Margin="15" Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="🖼️" FontSize="32" Margin="0,0,0,10"/>
+                        <TextBlock Text="Image to 3D" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                        <TextBlock Text="Convert any image into a 3D relief model. Perfect for logos, lithophanes, QR codes, and artistic prints." 
+                                  Foreground="#AAFFFFFF" TextWrapping="Wrap" FontSize="12"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 3D Print Ready Card -->
+                <Border Style="{StaticResource GlassPanelStyle}" Width="280" Height="200" Margin="15" Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="🖨️" FontSize="32" Margin="0,0,0,10"/>
+                        <TextBlock Text="3D Print Ready" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                        <TextBlock Text="Export watertight STL files optimized for 3D printing. Solid bases and proper geometry for FDM and SLA printers." 
+                                  Foreground="#AAFFFFFF" TextWrapping="Wrap" FontSize="12"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Terrain Card -->
+                <Border Style="{StaticResource GlassPanelStyle}" Width="280" Height="200" Margin="15" Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="⛰️" FontSize="32" Margin="0,0,0,10"/>
+                        <TextBlock Text="Real Elevation" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                        <TextBlock Text="Import real-world terrain data to create accurate topographic models with mountains, valleys, and rivers." 
+                                  Foreground="#AAFFFFFF" TextWrapping="Wrap" FontSize="12"/>
+                    </StackPanel>
+                </Border>
+            </WrapPanel>
+            
+            <!-- Contact/Footer Section -->
+            <Border Grid.Row="2" Style="{StaticResource GlassPanelStyle}" Padding="20" Margin="0,20,0,0" HorizontalAlignment="Center">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="📧" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="Questions or feedback? Contact us at " Foreground="#AAFFFFFF" FontSize="13" VerticalAlignment="Center"/>
+                    <TextBlock Text="contact@daolyap.dev" Foreground="{StaticResource AccentBrush}" FontSize="13" FontWeight="SemiBold" 
+                              VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="ContactEmail_Click">
+                        <TextBlock.TextDecorations>
+                            <TextDecoration Location="Underline"/>
+                        </TextBlock.TextDecorations>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
 </UserControl>

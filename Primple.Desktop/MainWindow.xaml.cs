@@ -24,6 +24,15 @@ public partial class MainWindow : Window
         SetupNavigation();
     }
 
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        // Ensure full screen on startup
+        if (WindowState != WindowState.Maximized)
+        {
+            WindowState = WindowState.Maximized;
+        }
+    }
+
     public void Navigate(string viewTag)
     {
         try
@@ -106,9 +115,12 @@ public partial class MainWindow : Window
                 yield return t;
             }
 
-            foreach (T childOfChild in FindVisualChildren<T>(child))
+            if (child != null)
             {
-                yield return childOfChild;
+                foreach (T childOfChild in FindVisualChildren<T>(child))
+                {
+                    yield return childOfChild;
+                }
             }
         }
     }

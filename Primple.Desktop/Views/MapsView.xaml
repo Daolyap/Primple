@@ -8,18 +8,19 @@
              d:DesignHeight="600" d:DesignWidth="800">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="320"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- Controls Sidebar -->
-        <Border Grid.Column="0" Background="#10FFFFFF" BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="0,0,1,0" Padding="20">
+        <Border Grid.Column="0" Background="#10FFFFFF" BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="0,0,1,0" Padding="15">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
-                <TextBlock Text="Map to STL" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,0,0,20"/>
+                <TextBlock Text="Map to STL" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,0,0,15"/>
                 
                 <!-- Search -->
                 <TextBlock Text="Location" Foreground="#AAAAAA" Margin="0,0,0,5"/>
-                <Grid Margin="0,0,0,15">
+                <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
@@ -28,20 +29,20 @@
                     <Button Grid.Column="1" Content="Go" Width="40" Margin="5,0,0,0" Style="{StaticResource GlassButtonStyle}" Click="SearchButton_Click"/>
                 </Grid>
                 
-                <TextBlock x:Name="LocationText" Text="No location selected" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,15"/>
+                <TextBlock x:Name="LocationText" Text="No location selected" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,10"/>
 
                 <!-- Radius -->
                 <TextBlock Text="Area Size (Radius)" Foreground="#AAAAAA" Margin="0,0,0,5"/>
-                <DockPanel Margin="0,0,0,10">
-                    <TextBox Text="{Binding ElementName=RadiusSlider, Path=Value, StringFormat=N0}" Width="60" DockPanel.Dock="Right" Margin="5,0,0,0" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12" VerticalContentAlignment="Center"/>
-                    <TextBlock Text="m" Foreground="#AAAAAA" DockPanel.Dock="Right" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                <DockPanel Margin="0,0,0,8">
+                    <TextBox Text="{Binding ElementName=RadiusSlider, Path=Value, StringFormat=N0}" Width="55" DockPanel.Dock="Right" Margin="5,0,0,0" Style="{StaticResource GlassTextBoxStyle}" Height="26" FontSize="11" VerticalContentAlignment="Center"/>
+                    <TextBlock Text="m" Foreground="#AAAAAA" DockPanel.Dock="Right" Margin="3,0,0,0" VerticalAlignment="Center" FontSize="11"/>
                     <Slider x:Name="RadiusSlider" Minimum="100" Maximum="10000" Value="500" TickFrequency="100" IsSnapToTickEnabled="True"/>
                 </DockPanel>
 
                 <!-- Resolution -->
                 <TextBlock Text="Resolution (Detail)" Foreground="#AAAAAA" Margin="0,0,0,5"/>
-                <DockPanel Margin="0,0,0,15">
-                    <TextBlock Text="{Binding ElementName=ResolutionSlider, Path=Value, StringFormat={}{0}%}" Width="40" DockPanel.Dock="Right" Margin="5,0,0,0" Foreground="White" VerticalAlignment="Center"/>
+                <DockPanel Margin="0,0,0,10">
+                    <TextBlock Text="{Binding ElementName=ResolutionSlider, Path=Value, StringFormat={}{0}%}" Width="35" DockPanel.Dock="Right" Margin="5,0,0,0" Foreground="White" VerticalAlignment="Center" FontSize="11"/>
                     <Slider x:Name="ResolutionSlider" Minimum="1" Maximum="200" Value="100" TickFrequency="10" IsSnapToTickEnabled="True"/>
                 </DockPanel>
 
@@ -50,69 +51,93 @@
                 
                 <Grid Margin="0,2">
                      <CheckBox x:Name="CheckBuildings" Content="Buildings" IsChecked="True" Foreground="White" VerticalAlignment="Center"/>
-                     <TextBox x:Name="BuildingColorHex" Text="#FF6464" Width="90" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12"/>
+                     <TextBox x:Name="BuildingColorHex" Text="#FF6464" Width="75" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="26" FontSize="11" ToolTip="Building color hex code"/>
                 </Grid>
                 
                 <Grid Margin="0,2">
                      <CheckBox x:Name="CheckRoads" Content="Roads" IsChecked="True" Foreground="White" VerticalAlignment="Center"/>
-                     <TextBox x:Name="RoadColorHex" Text="#323232" Width="90" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12"/>
+                     <TextBox x:Name="RoadColorHex" Text="#323232" Width="75" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="26" FontSize="11" ToolTip="Road color hex code"/>
                 </Grid>
 
                  <Grid Margin="0,2">
                      <TextBlock Text="Base/Water" Foreground="White" VerticalAlignment="Center" Margin="20,0,0,0"/>
-                     <TextBox x:Name="BaseColorHex" Text="#C8C8C8" Width="90" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12"/>
+                     <TextBox x:Name="BaseColorHex" Text="#C8C8C8" Width="75" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="26" FontSize="11" ToolTip="Base/Water color hex code"/>
                 </Grid>
 
                 <!-- Base Shape Option -->
                 <TextBlock Text="Base Shape" Foreground="#AAAAAA" Margin="0,5,0,5" FontSize="12"/>
-                <ComboBox x:Name="BaseShapeCombo" SelectedIndex="0" Height="30" Style="{StaticResource GlassComboBoxStyle}" Margin="0,0,0,10">
+                <ComboBox x:Name="BaseShapeCombo" SelectedIndex="0" Height="28" Style="{StaticResource GlassComboBoxStyle}" Margin="0,0,0,8">
                     <ComboBoxItem Content="Square"/>
                     <ComboBoxItem Content="Circular"/>
                 </ComboBox>
 
-                <CheckBox x:Name="Check3D" Content="3D Mode (Extruded)" IsChecked="True" Foreground="White" Margin="0,10,0,5"/>
+                <CheckBox x:Name="Check3D" Content="3D Mode (Extruded)" IsChecked="True" Foreground="White" Margin="0,5,0,5"/>
 
-                <CheckBox x:Name="CheckElevation" Content="Enable Elevation (Terrain)" IsChecked="False" Foreground="White" Margin="0,5,0,5">
+                <CheckBox x:Name="CheckElevation" Content="Enable Elevation (Terrain)" IsChecked="False" Foreground="White" Margin="0,3,0,3">
                     <CheckBox.ToolTip>
                         <ToolTip Content="Real-world terrain data. Risks: Large areas can be slower to generate and extreme values might distort your model."/>
                     </CheckBox.ToolTip>
                 </CheckBox>
 
-                <CheckBox x:Name="CheckGroundLevel" Content="Use Ground Level Offset" IsChecked="False" Foreground="White" Margin="20,0,0,5" FontSize="11">
+                <CheckBox x:Name="CheckGroundLevel" Content="Use Ground Level Offset" IsChecked="False" Foreground="White" Margin="20,0,0,3" FontSize="11">
                     <CheckBox.ToolTip>
                         <ToolTip Content="CAUTION: If Offset is higher than the terrain, your map will be BLANK. Recommended for mountains."/>
                     </CheckBox.ToolTip>
                 </CheckBox>
 
-                <DockPanel Margin="20,0,0,10" x:Name="GroundLevelPanel" IsEnabled="{Binding ElementName=CheckGroundLevel, Path=IsChecked}">
-                    <TextBox Text="{Binding ElementName=GroundLevelSlider, Path=Value, StringFormat=N0}" Width="40" DockPanel.Dock="Right" Margin="5,0,0,0" Style="{StaticResource GlassTextBoxStyle}" Height="24" FontSize="11"/>
+                <DockPanel Margin="20,0,0,8" x:Name="GroundLevelPanel" IsEnabled="{Binding ElementName=CheckGroundLevel, Path=IsChecked}">
+                    <TextBox Text="{Binding ElementName=GroundLevelSlider, Path=Value, StringFormat=N0}" Width="40" DockPanel.Dock="Right" Margin="5,0,0,0" Style="{StaticResource GlassTextBoxStyle}" Height="22" FontSize="10"/>
                     <Slider x:Name="GroundLevelSlider" Minimum="-100" Maximum="5000" Value="0" TickFrequency="100"/>
                 </DockPanel>
 
-                <TextBlock Text="Foundation Depth" Foreground="#AAAAAA" Margin="0,5,0,5" FontSize="12"/>
-                <DockPanel Margin="0,0,0,10">
-                    <TextBox Text="{Binding ElementName=BaseThicknessSlider, Path=Value, StringFormat=N1}" Width="40" DockPanel.Dock="Right" Margin="5,0,0,0" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12"/>
+                <TextBlock Text="Foundation Depth" Foreground="#AAAAAA" Margin="0,3,0,3" FontSize="11"/>
+                <DockPanel Margin="0,0,0,8">
+                    <TextBox Text="{Binding ElementName=BaseThicknessSlider, Path=Value, StringFormat=N1}" Width="40" DockPanel.Dock="Right" Margin="5,0,0,0" Style="{StaticResource GlassTextBoxStyle}" Height="26" FontSize="11"/>
                     <Slider x:Name="BaseThicknessSlider" Minimum="0.5" Maximum="20.0" Value="3.0" TickFrequency="0.5" IsSnapToTickEnabled="True"/>
                 </DockPanel>
 
                 <!-- 3D Printer Settings -->
-                <TextBlock Text="3D Printer Settings" Foreground="#AAAAAA" Margin="0,0,0,5" FontWeight="Bold"/>
+                <TextBlock Text="3D Printer Settings" Foreground="#AAAAAA" Margin="0,5,0,5" FontWeight="Bold"/>
+                
+                <!-- Printer Profile Dropdown -->
+                <TextBlock Text="Printer Profile" Foreground="#888888" Margin="0,0,0,3" FontSize="11"/>
+                <ComboBox x:Name="PrinterProfileCombo" Height="28" Style="{StaticResource GlassComboBoxStyle}" Margin="0,0,0,8" SelectionChanged="PrinterProfile_Changed">
+                    <ComboBoxItem Content="Custom" IsSelected="True"/>
+                    <ComboBoxItem Content="Bambu Lab A1 (256×256×256mm)"/>
+                    <ComboBoxItem Content="Bambu Lab P1S (256×256×256mm)"/>
+                    <ComboBoxItem Content="Bambu Lab X1C (256×256×256mm)"/>
+                    <ComboBoxItem Content="Prusa MK4 (250×210×220mm)"/>
+                    <ComboBoxItem Content="Prusa Mini (180×180×180mm)"/>
+                    <ComboBoxItem Content="Creality Ender 3 (220×220×250mm)"/>
+                    <ComboBoxItem Content="Creality K1 (220×220×250mm)"/>
+                    <ComboBoxItem Content="Anycubic Kobra 2 (220×220×250mm)"/>
+                    <ComboBoxItem Content="Elegoo Neptune 4 (225×225×265mm)"/>
+                </ComboBox>
                 
                 <Grid Margin="0,2">
-                    <TextBlock Text="Scale" VerticalAlignment="Center" Foreground="#CCFFFFFF" FontSize="12"/>
-                    <TextBox x:Name="ScaleTextBox" Text="1.0" Width="80" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12"/>
+                    <TextBlock Text="Scale" VerticalAlignment="Center" Foreground="#CCFFFFFF" FontSize="11"/>
+                    <TextBox x:Name="ScaleTextBox" Text="1.0" Width="70" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="26" FontSize="11" ToolTip="Export scale multiplier"/>
                 </Grid>
                 
                 <Grid Margin="0,2">
-                    <TextBlock Text="Output Size (mm)" VerticalAlignment="Center" Foreground="#CCFFFFFF" FontSize="12"/>
-                    <TextBox x:Name="OutputSizeTextBox" Text="100" Width="80" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12"/>
+                    <TextBlock Text="Output Size (mm)" VerticalAlignment="Center" Foreground="#CCFFFFFF" FontSize="11"/>
+                    <TextBox x:Name="OutputSizeTextBox" Text="100" Width="70" HorizontalAlignment="Right" Style="{StaticResource GlassTextBoxStyle}" Height="26" FontSize="11" ToolTip="Target output size in millimeters"/>
                 </Grid>
 
-                <Button Content="Generate Preview" Height="40" Style="{StaticResource GlassButtonStyle}" Margin="0,10,0,10" Click="GenerateButton_Click"/>
-                <Button Content="Export As STL" Height="40" Style="{StaticResource GlassButtonStyle}" Background="{StaticResource AccentBrush}" Click="ExportButton_Click"/>
+                <Button Content="Generate Preview" Height="38" Style="{StaticResource GlassButtonStyle}" Margin="0,10,0,8" Click="GenerateButton_Click"/>
                 
-                <TextBlock x:Name="StatusText" Text="" Foreground="#88FFFFFF" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                <!-- Export Options -->
+                <TextBlock Text="Export Options" Foreground="#888888" Margin="0,5,0,5" FontSize="11"/>
+                <Button Content="Export As STL" Height="38" Style="{StaticResource GlassButtonStyle}" Background="{StaticResource AccentBrush}" Click="ExportButton_Click" Margin="0,0,0,5"/>
+                <Button x:Name="ExportMultiColorButton" Content="Export Multi-Color STLs" Height="32" Style="{StaticResource GlassButtonStyle}" Click="ExportMultiColor_Click" FontSize="11">
+                    <Button.ToolTip>
+                        <ToolTip Content="Export separate STL files for buildings, roads, and terrain - useful for multi-color printing in Bambu Studio"/>
+                    </Button.ToolTip>
+                </Button>
+                
+                <TextBlock x:Name="StatusText" Text="" Foreground="#88FFFFFF" TextWrapping="Wrap" Margin="0,10,0,0" FontSize="11"/>
             </StackPanel>
+            </ScrollViewer>
         </Border>
 
         <!-- Preview -->

@@ -4,71 +4,90 @@
              xmlns:h="http://helix-toolkit.org/wpf">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="320"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         
         <!-- Controls Panel -->
         <Border Grid.Column="0" Margin="0,0,20,0" Padding="20" Style="{StaticResource GlassPanelStyle}">
-            <StackPanel>
-                <TextBlock Text="Image to 3D" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,20"/>
-                
-                <Button Content="Select Image" Style="{StaticResource GlassButtonStyle}" Click="SelectImage_Click" Margin="0,0,0,20"/>
-                
-                <TextBlock Text="Height Scale" Foreground="#AAAAAA" Margin="0,0,0,5"/>
-                <DockPanel Margin="0,0,0,20">
-                    <TextBox Text="{Binding ElementName=HeightSlider, Path=Value, StringFormat=N2}" Width="40" DockPanel.Dock="Right" Margin="5,0,0,0" Background="#22FFFFFF" Foreground="White" BorderThickness="0" Padding="2"/>
-                    <Slider x:Name="HeightSlider" Minimum="0.1" Maximum="5" Value="1" ValueChanged="Settings_Changed"/>
-                </DockPanel>
-                
-                <TextBlock Text="Resolution (Detail)" Foreground="#AAAAAA" Margin="0,0,0,5"/>
-                <DockPanel Margin="0,0,0,20">
-                    <TextBox Text="{Binding ElementName=ResolutionSlider, Path=Value, StringFormat=N0}" Width="40" DockPanel.Dock="Right" Margin="5,0,0,0" Background="#22FFFFFF" Foreground="White" BorderThickness="0" Padding="2"/>
-                    <Slider x:Name="ResolutionSlider" Minimum="50" Maximum="200" Value="100" ValueChanged="Settings_Changed"/>
-                </DockPanel>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="Image to 3D" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,20"/>
+                    
+                    <Button Content="Select Image" Style="{StaticResource GlassButtonStyle}" Click="SelectImage_Click" Margin="0,0,0,15"/>
+                    
+                    <TextBlock x:Name="ImageInfoText" Text="No image selected" Foreground="#88FFFFFF" FontSize="12" Margin="0,0,0,20" TextWrapping="Wrap"/>
+                    
+                    <TextBlock Text="Height Scale" Foreground="#AAAAAA" Margin="0,0,0,5"/>
+                    <DockPanel Margin="0,0,0,15">
+                        <TextBox Text="{Binding ElementName=HeightSlider, Path=Value, StringFormat=N2}" Width="50" DockPanel.Dock="Right" Margin="5,0,0,0" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12" VerticalContentAlignment="Center"/>
+                        <Slider x:Name="HeightSlider" Minimum="0.1" Maximum="5" Value="1" ValueChanged="Settings_Changed"/>
+                    </DockPanel>
+                    
+                    <TextBlock Text="Resolution (Detail)" Foreground="#AAAAAA" Margin="0,0,0,5"/>
+                    <DockPanel Margin="0,0,0,15">
+                        <TextBox Text="{Binding ElementName=ResolutionSlider, Path=Value, StringFormat=N0}" Width="50" DockPanel.Dock="Right" Margin="5,0,0,0" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12" VerticalContentAlignment="Center"/>
+                        <Slider x:Name="ResolutionSlider" Minimum="50" Maximum="300" Value="100" ValueChanged="Settings_Changed"/>
+                    </DockPanel>
 
-                <TextBlock Text="Projection Shape" Foreground="#AAAAAA" Margin="0,0,0,5"/>
-                <ComboBox x:Name="ShapeSelector" Margin="0,0,0,20" SelectedIndex="0" SelectionChanged="Settings_Changed">
-                    <ComboBoxItem Content="Plane"/>
-                    <ComboBoxItem Content="Sphere"/>
-                    <ComboBoxItem Content="Cube"/>
-                    <ComboBoxItem Content="Cylinder"/>
-                </ComboBox>
-                
-                <!-- Color Controls -->
-                <TextBlock Text="Material Color" Foreground="#AAAAAA" Margin="0,0,0,5"/>
-                <StackPanel Margin="0,0,0,20">
-                    <DockPanel Margin="0,2">
-                        <TextBlock Text="R" Foreground="Red" Width="15"/>
-                        <Slider x:Name="SliderR" Minimum="0" Maximum="255" Value="200" ValueChanged="Color_Changed"/>
+                    <TextBlock Text="Projection Shape" Foreground="#AAAAAA" Margin="0,0,0,5"/>
+                    <ComboBox x:Name="ShapeSelector" Margin="0,0,0,15" SelectedIndex="0" SelectionChanged="Settings_Changed" Style="{StaticResource GlassComboBoxStyle}">
+                        <ComboBoxItem Content="Plane (Flat Relief)"/>
+                        <ComboBoxItem Content="Sphere (Globe)"/>
+                        <ComboBoxItem Content="Cube (Box)"/>
+                        <ComboBoxItem Content="Cylinder (Wrap)"/>
+                    </ComboBox>
+
+                    <!-- 3D Printing Options -->
+                    <TextBlock Text="3D Printing Options" Foreground="#AAAAAA" FontWeight="SemiBold" Margin="0,5,0,10"/>
+                    
+                    <CheckBox x:Name="AddBaseCheckBox" Content="Add Solid Base" IsChecked="True" Foreground="White" Margin="0,0,0,10">
+                        <CheckBox.ToolTip>
+                            <ToolTip Content="Adds a solid base underneath the relief for 3D printing."/>
+                        </CheckBox.ToolTip>
+                    </CheckBox>
+                    
+                    <TextBlock Text="Base Thickness" Foreground="#AAAAAA" Margin="0,0,0,5"/>
+                    <DockPanel Margin="0,0,0,15">
+                        <TextBox Text="{Binding ElementName=BaseThicknessSlider, Path=Value, StringFormat=N1}" Width="50" DockPanel.Dock="Right" Margin="5,0,0,0" Style="{StaticResource GlassTextBoxStyle}" Height="28" FontSize="12" VerticalContentAlignment="Center"/>
+                        <Slider x:Name="BaseThicknessSlider" Minimum="0.5" Maximum="5" Value="1" TickFrequency="0.5" IsSnapToTickEnabled="True"/>
                     </DockPanel>
-                    <DockPanel Margin="0,2">
-                        <TextBlock Text="G" Foreground="Green" Width="15"/>
-                        <Slider x:Name="SliderG" Minimum="0" Maximum="255" Value="200" ValueChanged="Color_Changed"/>
-                    </DockPanel>
-                    <DockPanel Margin="0,2">
-                        <TextBlock Text="B" Foreground="Blue" Width="15"/>
-                        <Slider x:Name="SliderB" Minimum="0" Maximum="255" Value="200" ValueChanged="Color_Changed"/>
-                    </DockPanel>
+                    
+                    <!-- Color Controls -->
+                    <TextBlock Text="Material Color" Foreground="#AAAAAA" Margin="0,0,0,5"/>
+                    <StackPanel Margin="0,0,0,15">
+                        <DockPanel Margin="0,2">
+                            <TextBlock Text="R" Foreground="#FF6666" Width="15" FontWeight="Bold"/>
+                            <Slider x:Name="SliderR" Minimum="0" Maximum="255" Value="200" ValueChanged="Color_Changed"/>
+                        </DockPanel>
+                        <DockPanel Margin="0,2">
+                            <TextBlock Text="G" Foreground="#66FF66" Width="15" FontWeight="Bold"/>
+                            <Slider x:Name="SliderG" Minimum="0" Maximum="255" Value="200" ValueChanged="Color_Changed"/>
+                        </DockPanel>
+                        <DockPanel Margin="0,2">
+                            <TextBlock Text="B" Foreground="#6666FF" Width="15" FontWeight="Bold"/>
+                            <Slider x:Name="SliderB" Minimum="0" Maximum="255" Value="200" ValueChanged="Color_Changed"/>
+                        </DockPanel>
+                    </StackPanel>
+
+                    <TextBlock x:Name="StatusText" Text="Ready" Foreground="#88FFFFFF" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                    
+                    <Button Content="Generate Mesh" Style="{StaticResource GlassButtonStyle}" Background="{StaticResource AccentBrush}" BorderThickness="0" Click="Generate_Click" Margin="0,0,0,10"/>
+                    <Button Content="Export As STL" Style="{StaticResource GlassButtonStyle}" Click="ExportButton_Click"/>
                 </StackPanel>
-
-                <TextBlock x:Name="StatusText" Text="Ready" Foreground="#88FFFFFF" TextWrapping="Wrap" Margin="0,0,0,10"/>
-                
-                <Button Content="Generate Mesh" Style="{StaticResource GlassButtonStyle}" Background="{StaticResource AccentBrush}" BorderThickness="0" Click="Generate_Click" Margin="0,0,0,10"/>
-                <Button Content="Export As STL" Style="{StaticResource GlassButtonStyle}" Click="ExportButton_Click"/>
-            </StackPanel>
+            </ScrollViewer>
         </Border>
 
         <!-- 3D Viewport -->
         <Border Grid.Column="1" Style="{StaticResource GlassPanelStyle}" ClipToBounds="True">
             <h:HelixViewport3D x:Name="viewport" ZoomExtentsWhenLoaded="True" ShowCoordinateSystem="True" Background="Transparent">
                 <h:HelixViewport3D.DefaultCamera>
-                    <PerspectiveCamera Position="5,8,5" LookDirection="-1,-1.5,-1" UpDirection="0,1,0"
+                    <PerspectiveCamera Position="10,12,10" LookDirection="-1,-1.2,-1" UpDirection="0,1,0"
                                        NearPlaneDistance="0.1" FarPlaneDistance="10000" FieldOfView="45"/>
                 </h:HelixViewport3D.DefaultCamera>
                 
                 <h:DefaultLights/>
-                <h:GridLinesVisual3D Width="20" Length="20" Thickness="0.02" Fill="#40FFFFFF"/>
+                <h:GridLinesVisual3D Width="20" Length="20" Thickness="0.02" Fill="#40FFFFFF" Center="0,0,0"/>
                 
                 <ModelVisual3D x:Name="modelContainer"/>
             </h:HelixViewport3D>

@@ -16,19 +16,118 @@ public partial class ImageTo3dView : UserControl
 {
     private string _currentImagePath = "";
     private GeometryModel3D? _currentGeometry;
+    private ILogService? _logService;
 
     public ImageTo3dView()
     {
         InitializeComponent();
+        
+        if (App.AppHost != null)
+        {
+            _logService = App.AppHost.Services.GetService<ILogService>();
+        }
+    }
+
+    /// <summary>
+    /// Apply preset configuration for different use cases
+    /// </summary>
+    public void ApplyPreset(string presetName)
+    {
+        switch (presetName)
+        {
+            case "QRCode":
+                HeightSlider.Value = 0.3;
+                ResolutionSlider.Value = 150;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 1.5;
+                StatusText.Text = "QR Code preset applied. Use high-contrast black/white image for best results.";
+                break;
+            case "Lithophane":
+                HeightSlider.Value = 2.5;
+                ResolutionSlider.Value = 200;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 0.8;
+                // Set to white color for lithophane
+                SliderR.Value = 255;
+                SliderG.Value = 255;
+                SliderB.Value = 255;
+                StatusText.Text = "Lithophane preset applied. Print in white filament for best backlit effect.";
+                break;
+            case "CoinDesign":
+                HeightSlider.Value = 0.5;
+                ResolutionSlider.Value = 150;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 2.0;
+                // Gold-ish color
+                SliderR.Value = 212;
+                SliderG.Value = 175;
+                SliderB.Value = 55;
+                StatusText.Text = "Coin/Medal preset applied. Import a circular design for best results.";
+                break;
+            case "TextRelief":
+                HeightSlider.Value = 1.0;
+                ResolutionSlider.Value = 120;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 1.5;
+                StatusText.Text = "Text Relief preset applied. Use white text on black background.";
+                break;
+            case "Topographic":
+                HeightSlider.Value = 3.0;
+                ResolutionSlider.Value = 180;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 2.0;
+                // Earth tones
+                SliderR.Value = 139;
+                SliderG.Value = 119;
+                SliderB.Value = 101;
+                StatusText.Text = "Topographic preset applied. Use grayscale heightmap (black=low, white=high).";
+                break;
+            case "Logo3D":
+                HeightSlider.Value = 1.5;
+                ResolutionSlider.Value = 150;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 2.0;
+                StatusText.Text = "Logo preset applied. PNG with transparency works best.";
+                break;
+            case "HeightmapArt":
+                HeightSlider.Value = 2.5;
+                ResolutionSlider.Value = 200;
+                ShapeSelector.SelectedIndex = 0; // Plane
+                AddBaseCheckBox.IsChecked = true;
+                BaseThicknessSlider.Value = 2.0;
+                // Natural tones for artistic terrain
+                SliderR.Value = 160;
+                SliderG.Value = 160;
+                SliderB.Value = 140;
+                StatusText.Text = "Heightmap Art preset applied. Import grayscale image for smooth terrain.";
+                break;
+            default:
+                StatusText.Text = $"Ready for {presetName}";
+                break;
+        }
+    }
+
+    private void Log(string message, string level = "INFO")
+    {
+        _logService?.Log(message, "ImageTo3D", level);
     }
 
     private void SelectImage_Click(object sender, RoutedEventArgs e)
     {
-        var dlg = new OpenFileDialog { Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp" };
+        var dlg = new OpenFileDialog { Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif|All Files|*.*" };
         if (dlg.ShowDialog() == true)
         {
             _currentImagePath = dlg.FileName;
-            StatusText.Text = Path.GetFileName(_currentImagePath);
+            var fileInfo = new FileInfo(_currentImagePath);
+            ImageInfoText.Text = $"{Path.GetFileName(_currentImagePath)}\n{fileInfo.Length / 1024.0:F1} KB";
+            StatusText.Text = "Image selected. Click 'Generate Mesh' to create 3D model.";
+            Log($"Image selected: {_currentImagePath}");
         }
     }
 
@@ -48,6 +147,8 @@ public partial class ImageTo3dView : UserControl
         try
         {
             StatusText.Text = "Generating...";
+            Log("Starting mesh generation...");
+            
             if (App.AppHost != null)
             {
                 var service = App.AppHost.Services.GetRequiredService<IHeightmapService>();
@@ -58,7 +159,17 @@ public partial class ImageTo3dView : UserControl
                 else if (ShapeSelector.SelectedIndex == 2) selectedShape = ProjectionShape.Cube;
                 else if (ShapeSelector.SelectedIndex == 3) selectedShape = ProjectionShape.Cylinder;
 
-                var mesh = service.GenerateHeightmap(_currentImagePath, HeightSlider.Value, (int)ResolutionSlider.Value, selectedShape);
+                // Get base options
+                bool addBase = AddBaseCheckBox.IsChecked == true;
+                double baseThickness = BaseThicknessSlider.Value;
+
+                var mesh = service.GenerateHeightmap(
+                    _currentImagePath, 
+                    HeightSlider.Value, 
+                    (int)ResolutionSlider.Value, 
+                    selectedShape,
+                    addBase,
+                    baseThickness);
                 
                 var material = GetCurrentMaterial();
                 _currentGeometry = new GeometryModel3D(mesh, material);
@@ -72,12 +183,17 @@ public partial class ImageTo3dView : UserControl
                 modelContainer.Children.Add(visual);
                 
                 viewport.ZoomExtents();
-                StatusText.Text = "Generated!";
+                
+                int triangleCount = mesh.TriangleIndices.Count / 3;
+                StatusText.Text = $"Generated! {triangleCount:N0} triangles";
+                Log($"Mesh generated with {triangleCount} triangles");
             }
         }
         catch (Exception ex)
         {
             StatusText.Text = "Error: " + ex.Message;
+            Log($"Generation error: {ex.Message}", "ERROR");
+            MessageBox.Show($"Error generating mesh:\n{ex.Message}", "Generation Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -120,14 +236,17 @@ public partial class ImageTo3dView : UserControl
             if (dialog.ShowDialog() == true)
             {
                 StatusText.Text = "Exporting STL...";
+                Log($"Exporting to {dialog.FileName}");
                 ExportMeshToSTL(mesh, dialog.FileName);
                 StatusText.Text = "Exported!";
+                Log("Export complete");
                 MessageBox.Show($"Model exported successfully to:\n{dialog.FileName}", "Export Complete");
             }
         }
         catch (Exception ex)
         {
             StatusText.Text = "Export Error: " + ex.Message;
+            Log($"Export error: {ex.Message}", "ERROR");
         }
     }
 
@@ -148,6 +267,9 @@ public partial class ImageTo3dView : UserControl
                 var v2 = new Vector3D(p3.X - p1.X, p3.Y - p1.Y, p3.Z - p1.Z);
                 var normal = Vector3D.CrossProduct(v1, v2);
                 normal.Normalize();
+
+                // Handle NaN normals for degenerate triangles
+                if (double.IsNaN(normal.X)) normal = new Vector3D(0, 1, 0);
 
                 writer.WriteLine($"  facet normal {normal.X:F6} {normal.Y:F6} {normal.Z:F6}");
                 writer.WriteLine("    outer loop");

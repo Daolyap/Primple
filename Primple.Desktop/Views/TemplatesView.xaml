@@ -3,53 +3,140 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="40">
-            <TextBlock Text="Featured Templates" FontSize="32" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
-            <TextBlock Text="Quick presets for popular locations and 3D conversions" Foreground="#88FFFFFF" FontSize="16" Margin="0,0,0,40"/>
+            <TextBlock Text="Templates &amp; Presets" FontSize="32" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+            <TextBlock Text="Quick-start templates for common use cases" Foreground="#88FFFFFF" FontSize="16" Margin="0,0,0,40"/>
 
             <!-- Maps Section -->
-            <TextBlock Text="Popular Map Locations" FontSize="20" FontWeight="Bold" Foreground="#CCFFFFFF" Margin="0,0,0,15"/>
+            <TextBlock Text="🗺️ Popular Map Locations" FontSize="20" FontWeight="Bold" Foreground="#CCFFFFFF" Margin="0,0,0,15"/>
+            <TextBlock Text="Generate 3D models of famous landmarks and cities" Foreground="#666666" FontSize="12" Margin="0,0,0,15"/>
             <WrapPanel Margin="0,0,0,30">
-                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,20,20" Width="200" Height="140" Click="Template_Click" Tag="EiffelTower">
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="EiffelTower">
                     <StackPanel>
-                        <TextBlock Text="🗼" FontSize="40" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Eiffel Tower" FontWeight="Bold" Margin="0,10,0,0"/>
-                        <TextBlock Text="Paris, France" FontSize="11" Foreground="#88FFFFFF"/>
+                        <TextBlock Text="🗼" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Eiffel Tower" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Paris, France" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
-                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,20,20" Width="200" Height="140" Click="Template_Click" Tag="TimesSquare">
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="TimesSquare">
                     <StackPanel>
-                        <TextBlock Text="🗽" FontSize="40" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Times Square" FontWeight="Bold" Margin="0,10,0,0"/>
-                        <TextBlock Text="New York, USA" FontSize="11" Foreground="#88FFFFFF"/>
+                        <TextBlock Text="🏙️" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Times Square" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="New York, USA" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
-                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,20,20" Width="200" Height="140" Click="Template_Click" Tag="Colosseum">
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="Colosseum">
                     <StackPanel>
-                        <TextBlock Text="🏟️" FontSize="40" HorizontalAlignment="Center"/>
-                        <TextBlock Text="The Colosseum" FontWeight="Bold" Margin="0,10,0,0"/>
-                        <TextBlock Text="Rome, Italy" FontSize="11" Foreground="#88FFFFFF"/>
+                        <TextBlock Text="🏟️" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Colosseum" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Rome, Italy" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="BigBen">
+                    <StackPanel>
+                        <TextBlock Text="🕰️" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Big Ben" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="London, UK" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="SydneyOpera">
+                    <StackPanel>
+                        <TextBlock Text="🎭" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Sydney Opera" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Sydney, Australia" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="TajMahal">
+                    <StackPanel>
+                        <TextBlock Text="🕌" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Taj Mahal" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Agra, India" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </WrapPanel>
 
-            <!-- Image Section -->
-            <TextBlock Text="Image-to-3D Examples" FontSize="20" FontWeight="Bold" Foreground="#CCFFFFFF" Margin="0,0,0,15"/>
-            <WrapPanel>
-                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,20,20" Width="200" Height="140" Click="Template_Click" Tag="Logo3D">
+            <!-- Natural Features -->
+            <TextBlock Text="🏔️ Natural Features" FontSize="20" FontWeight="Bold" Foreground="#CCFFFFFF" Margin="0,0,0,15"/>
+            <TextBlock Text="Mountains, rivers, and landscapes with real elevation data" Foreground="#666666" FontSize="12" Margin="0,0,0,15"/>
+            <WrapPanel Margin="0,0,0,30">
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="GrandCanyon">
                     <StackPanel>
-                        <TextBlock Text="🖼️" FontSize="40" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Company Logo" FontWeight="Bold" Margin="0,10,0,0"/>
-                        <TextBlock Text="Flat to 3D Relief" FontSize="11" Foreground="#88FFFFFF"/>
+                        <TextBlock Text="🏜️" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Grand Canyon" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Arizona, USA" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
-                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,20,20" Width="200" Height="140" Click="Template_Click" Tag="HeightmapArt">
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="MtFuji">
                     <StackPanel>
-                        <TextBlock Text="⛰️" FontSize="40" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Terrain Heightmap" FontWeight="Bold" Margin="0,10,0,0"/>
-                        <TextBlock Text="Smooth Landscape" FontSize="11" Foreground="#88FFFFFF"/>
+                        <TextBlock Text="🗻" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Mount Fuji" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Japan" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="NiagaraFalls">
+                    <StackPanel>
+                        <TextBlock Text="🌊" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Niagara Falls" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="USA/Canada" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </WrapPanel>
+
+            <!-- Image-to-3D Section -->
+            <TextBlock Text="🖼️ Image to 3D Use Cases" FontSize="20" FontWeight="Bold" Foreground="#CCFFFFFF" Margin="0,0,0,15"/>
+            <TextBlock Text="Practical applications for converting images to 3D models" Foreground="#666666" FontSize="12" Margin="0,0,0,15"/>
+            <WrapPanel Margin="0,0,0,30">
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="Logo3D">
+                    <StackPanel>
+                        <TextBlock Text="🏢" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Company Logo" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Brand signage &amp; awards" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="QRCode">
+                    <StackPanel>
+                        <TextBlock Text="📱" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="QR Code Relief" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Embossed scannable code" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="Lithophane">
+                    <StackPanel>
+                        <TextBlock Text="💡" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Lithophane" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Backlit photo display" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="Topographic">
+                    <StackPanel>
+                        <TextBlock Text="🗺️" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Topographic Map" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Elevation contour model" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="CoinDesign">
+                    <StackPanel>
+                        <TextBlock Text="🪙" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Coin/Medal" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Custom medal design" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource GlassButtonStyle}" Margin="0,0,15,15" Width="180" Height="130" Click="Template_Click" Tag="TextRelief">
+                    <StackPanel>
+                        <TextBlock Text="📝" FontSize="36" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Text Relief" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Raised text plaque" FontSize="11" Foreground="#88FFFFFF" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </WrapPanel>
