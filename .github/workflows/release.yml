@@ -101,7 +101,14 @@ jobs:
           }
           $hashString = [System.BitConverter]::ToString($hashBytes).Replace("-", "").Substring(0, 8)
           
-          return "Component_{0}_{1}" -f $sanitized, $hashString
+          # WiX identifiers should be 72 characters or less
+          # Format: "Cmp_" (4) + sanitized (up to 59) + "_" (1) + hash (8) = 72 max
+          $maxSanitizedLength = 59
+          if ($sanitized.Length -gt $maxSanitizedLength) {
+            $sanitized = $sanitized.Substring(0, $maxSanitizedLength)
+          }
+          
+          return "Cmp_{0}_{1}" -f $sanitized, $hashString
         }
         
         # Generate Component elements for each DLL
@@ -120,7 +127,8 @@ jobs:
         # DO NOT CHANGE THIS GUID.
         $wxsContent = @"
         <?xml version="1.0" encoding="UTF-8"?>
-        <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+        <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+             xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
           <Package Name="Primple" 
                    Version="$version"
                    Manufacturer="Daolyap"
@@ -184,7 +192,7 @@ jobs:
             <Icon Id="PrimpleIcon.exe" SourceFile="publish/msi-staging/Primple.Desktop.exe"/>
             
             <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
-            <UIRef Id="WixUI_InstallDir"/>
+            <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
           </Package>
         </Wix>
         "@
