@@ -91,6 +91,9 @@ jobs:
         "@
         }
         
+        # NOTE: The UpgradeCode GUID (7C9F4B5E-8D3A-4E1B-9F2C-6A8D4E3B7C9F) must remain constant
+        # across all releases to ensure proper upgrade detection and maintain upgrade paths.
+        # DO NOT CHANGE THIS GUID.
         $wxsContent = @"
         <?xml version="1.0" encoding="UTF-8"?>
         <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
@@ -141,6 +144,8 @@ jobs:
         $dllComponents
             </ComponentGroup>
             
+            <!-- The GUID "8D3A4E1B-9F2C-6A8D-4E3B-7C9F4B5E8D3A" is a permanent identifier for the Start Menu shortcut component.
+                 This GUID must remain constant across all releases to ensure correct installation, upgrade, and uninstallation behavior. -->
             <Component Id="ApplicationShortcut" Directory="ApplicationProgramsFolder" Guid="8D3A4E1B-9F2C-6A8D-4E3B-7C9F4B5E8D3A">
               <Shortcut Id="ApplicationStartMenuShortcut"
                         Name="Primple"
