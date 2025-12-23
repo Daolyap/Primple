@@ -84,8 +84,9 @@ jobs:
         # Generate Component elements for each DLL
         $dllComponents = ""
         foreach ($dll in $dllFiles) {
+          $componentId = "Component_" + ($dll -replace '[^a-zA-Z0-9]', '_')
           $dllComponents += @"
-              <Component>
+              <Component Id="$componentId">
                 <File Source="publish/msi-staging/$dll" />
               </Component>
         "@
@@ -124,7 +125,7 @@ jobs:
             </StandardDirectory>
             
             <ComponentGroup Id="ProductComponents" Directory="BinFolder">
-              <Component>
+              <Component Id="MainExecutable">
                 <File Source="publish/msi-staging/Primple.Desktop.exe" KeyPath="yes">
                   <Shortcut Id="ApplicationDesktopShortcut"
                             Directory="DesktopFolder"
@@ -135,10 +136,10 @@ jobs:
                             Advertise="yes" />
                 </File>
               </Component>
-              <Component>
+              <Component Id="MainLibrary">
                 <File Source="publish/msi-staging/Primple.Desktop.dll" />
               </Component>
-              <Component>
+              <Component Id="RuntimeConfig">
                 <File Source="publish/msi-staging/Primple.Desktop.runtimeconfig.json" />
               </Component>
         $dllComponents
