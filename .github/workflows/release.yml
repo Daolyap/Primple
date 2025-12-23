@@ -81,13 +81,36 @@ jobs:
         # Get all DLL files from publish directory
         $dllFiles = Get-ChildItem -Path "publish/msi-staging" -Filter "*.dll" | Select-Object -ExpandProperty Name
         
+        # Helper to generate a unique, WiX-compliant Component Id for each DLL
+        function Get-ComponentId {
+          param (
+            [string]$dllName
+          )
+          
+          # Sanitize name to allowed characters
+          $sanitized = $dllName -replace '[^a-zA-Z0-9]', '_'
+          
+          # Append a short, deterministic hash of the original name to avoid collisions
+          $bytes = [System.Text.Encoding]::UTF8.GetBytes($dllName)
+          $sha256 = [System.Security.Cryptography.SHA256]::Create()
+          try {
+            $hashBytes = $sha256.ComputeHash($bytes)
+          }
+          finally {
+            $sha256.Dispose()
+          }
+          $hashString = [System.BitConverter]::ToString($hashBytes).Replace("-", "").Substring(0, 8)
+          
+          return "Component_{0}_{1}" -f $sanitized, $hashString
+        }
+        
         # Generate Component elements for each DLL
         $dllComponents = ""
         foreach ($dll in $dllFiles) {
-          $componentId = "Component_" + ($dll -replace '[^a-zA-Z0-9]', '_')
+          $componentId = Get-ComponentId -dllName $dll
           $dllComponents += @"
               <Component Id="$componentId">
-                <File Source="publish/msi-staging/$dll" />
+                <File Source="publish/msi-staging/$dll" KeyPath="yes" />
               </Component>
         "@
         }
@@ -187,8 +210,8 @@ jobs:
           ## Primple v${{ steps.version.outputs.version }}
           
           ### Downloads
-          - **MSI Installer**: For standard installation with shortcuts and uninstaller
-          - **Portable ZIP**: Standalone executable, no installation required
+          - **MSI Installer**: For standard installation with shortcuts and uninstaller. Requires the .NET 10.0 runtime to be installed separately.
+          - **Portable ZIP**: Fully self-contained standalone executable, no installation or separate .NET runtime required.
           
           ### Changes
           Auto-generated release from commit ${{ github.sha }}
@@ -199,16 +222,16 @@ jobs:
         draft: false
         prerelease: false
 
-    # Upload artifacts for manual releases and workflow_dispatch
+    # Upload artifacts for manual releases, workflow_dispatch, and non-main/master pushes
     - name: Upload MSI Artifact
-      if: github.event_name != 'push' || !(github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      if: github.event_name != 'push' || (github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master')
       uses: actions/upload-artifact@v4
       with:
         name: Primple-MSI
         path: ./publish/Primple-${{ steps.version.outputs.version }}.msi
 
     - name: Upload Portable ZIP Artifact
-      if: github.event_name != 'push' || !(github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      if: github.event_name != 'push' || (github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master')
       uses: actions/upload-artifact@v4
       with:
         name: Primple-Portable
