@@ -40,8 +40,9 @@ public partial class HomeView : UserControl
                 UseShellExecute = true
             });
         }
-        catch
+        catch (Exception ex)
         {
+            Debug.WriteLine($"Failed to open mail client for contact email: {ex}");
             Clipboard.SetText("contact@daolyap.dev");
             MessageBox.Show("Email copied to clipboard: contact@daolyap.dev", "Contact");
         }

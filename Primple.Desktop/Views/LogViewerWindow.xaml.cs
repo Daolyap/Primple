@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.Windows;
@@ -35,6 +36,7 @@ public class LogLevelColorConverter : IValueConverter
 public partial class LogViewerWindow : Window
 {
     private readonly ILogService _logService;
+    private readonly ObservableCollection<string> _displayLogs = new();
 
     public LogViewerWindow(ILogService logService)
     {
@@ -45,8 +47,14 @@ public partial class LogViewerWindow : Window
         
         InitializeComponent();
         
-        // Bind to log entries
-        LogListBox.ItemsSource = _logService.Logs.Select(l => l.ToString()).ToList();
+        // Initialize display logs from existing entries
+        foreach (var log in _logService.Logs)
+        {
+            _displayLogs.Add(log.ToString());
+        }
+        
+        // Bind to our local observable collection for efficient updates
+        LogListBox.ItemsSource = _displayLogs;
         UpdateLogCount();
 
         // Subscribe to collection changes
@@ -59,7 +67,43 @@ public partial class LogViewerWindow : Window
     {
         Dispatcher.Invoke(() =>
         {
-            LogListBox.ItemsSource = _logService.Logs.Select(l => l.ToString()).ToList();
+            // Handle incremental updates instead of rebuilding entire list
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    if (e.NewItems != null)
+                    {
+                        foreach (LogEntry item in e.NewItems)
+                        {
+                            _displayLogs.Add(item.ToString());
+                        }
+                    }
+                    break;
+                    
+                case NotifyCollectionChangedAction.Remove:
+                    if (e.OldItems != null)
+                    {
+                        foreach (LogEntry item in e.OldItems)
+                        {
+                            _displayLogs.Remove(item.ToString());
+                        }
+                    }
+                    break;
+                    
+                case NotifyCollectionChangedAction.Reset:
+                    _displayLogs.Clear();
+                    break;
+                    
+                default:
+                    // For other actions, rebuild the list
+                    _displayLogs.Clear();
+                    foreach (var log in _logService.Logs)
+                    {
+                        _displayLogs.Add(log.ToString());
+                    }
+                    break;
+            }
+            
             UpdateLogCount();
             
             // Auto-scroll to bottom
@@ -94,7 +138,7 @@ public partial class LogViewerWindow : Window
     private void ClearLogs_Click(object sender, RoutedEventArgs e)
     {
         _logService.Clear();
-        LogListBox.ItemsSource = null;
+        _displayLogs.Clear();
         UpdateLogCount();
     }
 

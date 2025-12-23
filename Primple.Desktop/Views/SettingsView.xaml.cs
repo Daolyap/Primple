@@ -233,7 +233,7 @@ public partial class SettingsView : UserControl
     {
         if (_logService == null || App.AppHost == null) 
         {
-            MessageBox.Show("Log service is not available.", "Debug Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Log service or application host is not available.", "Debug Logs", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 

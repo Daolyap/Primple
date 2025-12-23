@@ -118,6 +118,10 @@ public partial class TemplatesView : UserControl
             mainWindow.Navigate("Maps");
             StatusText.Text = $"Loaded: {name}";
         }
+        else
+        {
+            StatusText.Text = "Error: Could not load Maps view.";
+        }
     }
 
     private void NavigateToMapWithElevation(MainWindow mainWindow, double lat, double lon, string name, double radius)

@@ -66,6 +66,10 @@ public class MapsService : IMapsService
     private readonly HttpClient _client = new HttpClient();
     private ILogService? _logService;
     
+    // Configuration constants
+    private const double DefaultWaterDepth = 2.0; // Default 2mm depth for water in 3D prints
+    private const double WaterDetectionRadius = 12.0; // Meters radius for waterway detection
+    
     // Internal class for building parts (multi-level structures)
     private class BuildingPart
     {
@@ -318,7 +322,7 @@ public class MapsService : IMapsService
         double usedGroundLevel = options.UseGroundLevel ? options.GroundLevel : 0;
 
         // Water depth for 3D printing (water should be a depression)
-        double waterDepth = 2.0; // Default 2mm depth for water
+        double waterDepth = DefaultWaterDepth;
         if (App.AppHost != null)
         {
             var settings = App.AppHost.Services.GetService<IAppSettings>();
@@ -1177,8 +1181,6 @@ public class MapsService : IMapsService
         }
         return false;
     }
-
-    private const double WaterDetectionRadius = 12.0; // Meters radius for waterway detection
 
     /// <summary>
     /// Checks if a point is in water (either in a water polygon or near a waterway line)

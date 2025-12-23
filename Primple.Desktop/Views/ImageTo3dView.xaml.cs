@@ -125,7 +125,7 @@ public partial class ImageTo3dView : UserControl
         {
             _currentImagePath = dlg.FileName;
             var fileInfo = new FileInfo(_currentImagePath);
-            ImageInfoText.Text = $"{Path.GetFileName(_currentImagePath)}\n{fileInfo.Length / 1024} KB";
+            ImageInfoText.Text = $"{Path.GetFileName(_currentImagePath)}\n{fileInfo.Length / 1024.0:F1} KB";
             StatusText.Text = "Image selected. Click 'Generate Mesh' to create 3D model.";
             Log($"Image selected: {_currentImagePath}");
         }

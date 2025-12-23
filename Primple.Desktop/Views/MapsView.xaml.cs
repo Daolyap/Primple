@@ -283,7 +283,11 @@ public partial class MapsView : UserControl
                 StatusText.Text = "Exporting multi-color STLs...";
                 
                 string basePath = System.IO.Path.GetDirectoryName(dialog.FileName) ?? "";
-                string baseName = System.IO.Path.GetFileNameWithoutExtension(dialog.FileName).Replace("_terrain", "");
+                string fileNameWithoutExt = System.IO.Path.GetFileNameWithoutExtension(dialog.FileName);
+                const string terrainSuffix = "_terrain";
+                string baseName = fileNameWithoutExt.EndsWith(terrainSuffix, StringComparison.OrdinalIgnoreCase)
+                    ? fileNameWithoutExt.Substring(0, fileNameWithoutExt.Length - terrainSuffix.Length)
+                    : fileNameWithoutExt;
                 
                 // Export each component separately
                 // Component order in Model3DGroup: 0=base, 1=ground, 2=water (optional), 3+=buildings, roads
