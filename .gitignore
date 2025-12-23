@@ -65,3 +65,11 @@ $RECYCLE.BIN/
 # Build logs
 build_log*.txt
 msbuild*.log
+
+# GitHub Actions publish artifacts
+publish/
+
+# WiX generated files
+*.wxs
+*.wixobj
+*.wixpdb
