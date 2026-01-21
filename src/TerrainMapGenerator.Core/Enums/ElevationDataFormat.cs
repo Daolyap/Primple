@@ -26,6 +26,11 @@ public enum ElevationDataFormat
     Xyz,
 
     /// <summary>
+    /// PNG heightmap format (.png).
+    /// </summary>
+    Png,
+
+    /// <summary>
     /// Raw elevation data.
     /// </summary>
     Raw

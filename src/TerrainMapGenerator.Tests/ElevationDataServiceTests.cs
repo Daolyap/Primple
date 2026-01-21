@@ -18,6 +18,8 @@ public class ElevationDataServiceTests
         Assert.Contains(".tif", extensions);
         Assert.Contains(".tiff", extensions);
         Assert.Contains(".xyz", extensions);
+        Assert.Contains(".hgt", extensions);
+        Assert.Contains(".png", extensions);
     }
 
     [Theory]
@@ -26,10 +28,12 @@ public class ElevationDataServiceTests
     [InlineData("file.tif", true)]
     [InlineData("file.tiff", true)]
     [InlineData("file.xyz", true)]
+    [InlineData("file.hgt", true)]
+    [InlineData("file.png", true)]
     [InlineData("file.ASC", true)]
     [InlineData("file.TIF", true)]
-    [InlineData("file.png", false)]
     [InlineData("file.stl", false)]
+    [InlineData("file.obj", false)]
     [InlineData("file", false)]
     public void IsFormatSupported_ReturnsCorrectResult(string filename, bool expected)
     {
@@ -49,19 +53,19 @@ public class ElevationDataServiceTests
     public void LoadFromFile_UnsupportedFormat_ThrowsException()
     {
         var tempFile = Path.GetTempFileName();
-        var pngFile = Path.ChangeExtension(tempFile, ".png");
+        var stlFile = Path.ChangeExtension(tempFile, ".stl");
 
         try
         {
-            File.Move(tempFile, pngFile);
+            File.Move(tempFile, stlFile);
 
             Assert.Throws<NotSupportedException>(() =>
-                _service.LoadFromFile(pngFile));
+                _service.LoadFromFile(stlFile));
         }
         finally
         {
-            if (File.Exists(pngFile))
-                File.Delete(pngFile);
+            if (File.Exists(stlFile))
+                File.Delete(stlFile);
             if (File.Exists(tempFile))
                 File.Delete(tempFile);
         }

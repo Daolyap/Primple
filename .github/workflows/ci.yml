@@ -1,0 +1,76 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore TerrainMapGenerator.sln
+    
+    - name: Build
+      run: dotnet build TerrainMapGenerator.sln --configuration Release --no-restore
+    
+    - name: Test
+      run: dotnet test TerrainMapGenerator.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: '**/TestResults/*.trx'
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    strategy:
+      matrix:
+        include:
+          - runtime: win-x64
+            artifact: terrain-map-generator-windows-x64
+          - runtime: linux-x64
+            artifact: terrain-map-generator-linux-x64
+          - runtime: osx-x64
+            artifact: terrain-map-generator-macos-x64
+          - runtime: osx-arm64
+            artifact: terrain-map-generator-macos-arm64
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Publish ${{ matrix.runtime }}
+      run: |
+        dotnet publish src/TerrainMapGenerator.Cli/TerrainMapGenerator.Cli.csproj \
+          --configuration Release \
+          --runtime ${{ matrix.runtime }} \
+          --self-contained true \
+          -p:PublishSingleFile=true \
+          -p:PublishTrimmed=true \
+          --output ./publish/${{ matrix.runtime }}
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact }}
+        path: ./publish/${{ matrix.runtime }}

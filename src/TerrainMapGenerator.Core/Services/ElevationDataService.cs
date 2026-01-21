@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using TerrainMapGenerator.Core.Enums;
 using TerrainMapGenerator.Core.Interfaces;
 using TerrainMapGenerator.Core.Models;
@@ -11,7 +13,15 @@ namespace TerrainMapGenerator.Core.Services;
 /// </summary>
 public class ElevationDataService : IElevationDataService
 {
-    private static readonly string[] SupportedExtensionsArray = { ".asc", ".grd", ".tif", ".tiff", ".xyz" };
+    private static readonly string[] SupportedExtensionsArray = { ".asc", ".grd", ".tif", ".tiff", ".xyz", ".hgt", ".png" };
+    private readonly ILogger<ElevationDataService> _logger;
+
+    public ElevationDataService() : this(NullLogger<ElevationDataService>.Instance) { }
+
+    public ElevationDataService(ILogger<ElevationDataService> logger)
+    {
+        _logger = logger;
+    }
 
     public IReadOnlyList<string> SupportedExtensions => SupportedExtensionsArray;
 
@@ -33,13 +43,22 @@ public class ElevationDataService : IElevationDataService
 
         var ext = Path.GetExtension(filePath).ToLowerInvariant();
 
-        return ext switch
+        _logger.LogInformation("Loading elevation data from {FilePath} (format: {Format})", filePath, ext);
+
+        var result = ext switch
         {
             ".asc" or ".grd" => LoadAsciiGrid(filePath),
             ".tif" or ".tiff" => LoadGeoTiff(filePath),
             ".xyz" => LoadXyz(filePath),
+            ".hgt" => LoadHgt(filePath),
+            ".png" => LoadPngHeightmap(filePath),
             _ => throw new NotSupportedException($"File format '{ext}' is not supported.")
         };
+
+        _logger.LogInformation("Loaded elevation data: {Width}x{Height}, range: {Min}m to {Max}m",
+            result.Width, result.Height, result.MinElevation, result.MaxElevation);
+
+        return result;
     }
 
     /// <summary>
@@ -344,5 +363,251 @@ public class ElevationDataService : IElevationDataService
         var bytes = reader.ReadBytes(4);
         if (!littleEndian) Array.Reverse(bytes);
         return BitConverter.ToSingle(bytes);
+    }
+
+    /// <summary>
+    /// Loads NASA SRTM HGT format file (.hgt).
+    /// HGT files contain 16-bit signed integers in big-endian format.
+    /// File naming convention: N37W122.hgt (latitude/longitude of SW corner)
+    /// </summary>
+    private static ElevationData LoadHgt(string filePath)
+    {
+        var fileInfo = new FileInfo(filePath);
+        var fileSize = fileInfo.Length;
+
+        // Determine resolution from file size
+        // SRTM1: 3601x3601 samples (1 arc-second), ~25MB
+        // SRTM3: 1201x1201 samples (3 arc-seconds), ~2.8MB
+        int size;
+        double cellSize;
+
+        if (fileSize == 3601 * 3601 * 2)
+        {
+            size = 3601;
+            cellSize = 1.0 / 3600.0; // 1 arc-second in degrees
+        }
+        else if (fileSize == 1201 * 1201 * 2)
+        {
+            size = 1201;
+            cellSize = 3.0 / 3600.0; // 3 arc-seconds in degrees
+        }
+        else
+        {
+            throw new FormatException($"Unknown HGT file size: {fileSize}. Expected SRTM1 or SRTM3 format.");
+        }
+
+        // Parse coordinates from filename (e.g., N37W122.hgt)
+        var fileName = Path.GetFileNameWithoutExtension(filePath).ToUpperInvariant();
+        var match = Regex.Match(fileName, @"^([NS])(\d{2})([EW])(\d{3})$");
+        
+        double originLat = 0, originLon = 0;
+        if (match.Success)
+        {
+            originLat = int.Parse(match.Groups[2].Value);
+            if (match.Groups[1].Value == "S") originLat = -originLat;
+
+            originLon = int.Parse(match.Groups[4].Value);
+            if (match.Groups[3].Value == "W") originLon = -originLon;
+        }
+
+        var elevationData = new ElevationData(size, size, cellSize, cellSize)
+        {
+            OriginX = originLon,
+            OriginY = originLat,
+            NoDataValue = -32768, // SRTM void value
+            SourceFormat = ElevationDataFormat.Hgt
+        };
+
+        using var stream = File.OpenRead(filePath);
+        using var reader = new BinaryReader(stream);
+
+        // HGT files are stored from north to south, west to east
+        // Data is big-endian 16-bit signed integers
+        for (int row = 0; row < size; row++)
+        {
+            for (int col = 0; col < size; col++)
+            {
+                var bytes = reader.ReadBytes(2);
+                // Big-endian to little-endian
+                short value = (short)((bytes[0] << 8) | bytes[1]);
+                elevationData.SetValue(row, col, value);
+            }
+        }
+
+        elevationData.RecalculateMinMax();
+        return elevationData;
+    }
+
+    /// <summary>
+    /// Loads a PNG heightmap file.
+    /// Interprets grayscale values as elevation data.
+    /// </summary>
+    private static ElevationData LoadPngHeightmap(string filePath)
+    {
+        return LoadPngHeightmap(filePath, minElevation: 0, maxElevation: 1000);
+    }
+
+    /// <summary>
+    /// Loads a PNG heightmap file with specified elevation range.
+    /// </summary>
+    private static ElevationData LoadPngHeightmap(string filePath, float minElevation, float maxElevation)
+    {
+        using var stream = File.OpenRead(filePath);
+        
+        // Read PNG header
+        var signature = new byte[8];
+        stream.Read(signature, 0, 8);
+        
+        // Verify PNG signature
+        byte[] expectedSignature = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+        for (int i = 0; i < 8; i++)
+        {
+            if (signature[i] != expectedSignature[i])
+                throw new FormatException("Not a valid PNG file.");
+        }
+
+        // Parse chunks to find IHDR and IDAT
+        int width = 0, height = 0;
+        int bitDepth = 8;
+        int colorType = 0;
+        var imageData = new List<byte>();
+        var palette = new byte[0];
+
+        using var reader = new BinaryReader(stream);
+
+        while (stream.Position < stream.Length)
+        {
+            // Read chunk length (big-endian)
+            var lengthBytes = reader.ReadBytes(4);
+            Array.Reverse(lengthBytes);
+            int chunkLength = BitConverter.ToInt32(lengthBytes, 0);
+
+            // Read chunk type
+            var typeBytes = reader.ReadBytes(4);
+            var chunkType = System.Text.Encoding.ASCII.GetString(typeBytes);
+
+            // Read chunk data
+            var chunkData = reader.ReadBytes(chunkLength);
+
+            // Skip CRC
+            reader.ReadBytes(4);
+
+            switch (chunkType)
+            {
+                case "IHDR":
+                    width = (chunkData[0] << 24) | (chunkData[1] << 16) | (chunkData[2] << 8) | chunkData[3];
+                    height = (chunkData[4] << 24) | (chunkData[5] << 16) | (chunkData[6] << 8) | chunkData[7];
+                    bitDepth = chunkData[8];
+                    colorType = chunkData[9];
+                    break;
+
+                case "PLTE":
+                    palette = chunkData;
+                    break;
+
+                case "IDAT":
+                    imageData.AddRange(chunkData);
+                    break;
+
+                case "IEND":
+                    break;
+            }
+        }
+
+        if (width == 0 || height == 0)
+            throw new FormatException("Invalid PNG: Could not read image dimensions.");
+
+        // Decompress IDAT data (zlib compressed)
+        var decompressed = DecompressZlib(imageData.ToArray());
+
+        var elevationData = new ElevationData(width, height, 1.0, 1.0)
+        {
+            SourceFormat = ElevationDataFormat.Raw
+        };
+
+        float elevationRange = maxElevation - minElevation;
+        int bytesPerPixel = GetBytesPerPixel(colorType, bitDepth);
+        int scanlineLength = 1 + width * bytesPerPixel; // +1 for filter byte
+
+        for (int row = 0; row < height; row++)
+        {
+            int rowStart = row * scanlineLength + 1; // Skip filter byte
+
+            for (int col = 0; col < width; col++)
+            {
+                int pixelStart = rowStart + col * bytesPerPixel;
+                
+                float grayscale;
+                if (colorType == 0) // Grayscale
+                {
+                    if (bitDepth == 16 && pixelStart + 1 < decompressed.Length)
+                    {
+                        int value = (decompressed[pixelStart] << 8) | decompressed[pixelStart + 1];
+                        grayscale = value / 65535f;
+                    }
+                    else if (pixelStart < decompressed.Length)
+                    {
+                        grayscale = decompressed[pixelStart] / 255f;
+                    }
+                    else
+                    {
+                        grayscale = 0;
+                    }
+                }
+                else if (colorType == 2 && pixelStart + 2 < decompressed.Length) // RGB - convert to grayscale
+                {
+                    float r = decompressed[pixelStart] / 255f;
+                    float g = decompressed[pixelStart + 1] / 255f;
+                    float b = decompressed[pixelStart + 2] / 255f;
+                    grayscale = 0.299f * r + 0.587f * g + 0.114f * b;
+                }
+                else if (colorType == 6 && pixelStart + 3 < decompressed.Length) // RGBA - convert to grayscale
+                {
+                    float r = decompressed[pixelStart] / 255f;
+                    float g = decompressed[pixelStart + 1] / 255f;
+                    float b = decompressed[pixelStart + 2] / 255f;
+                    grayscale = 0.299f * r + 0.587f * g + 0.114f * b;
+                }
+                else
+                {
+                    grayscale = 0;
+                }
+
+                float elevation = minElevation + grayscale * elevationRange;
+                elevationData.SetValue(row, col, elevation);
+            }
+        }
+
+        elevationData.RecalculateMinMax();
+        return elevationData;
+    }
+
+    private static int GetBytesPerPixel(int colorType, int bitDepth)
+    {
+        int samplesPerPixel = colorType switch
+        {
+            0 => 1, // Grayscale
+            2 => 3, // RGB
+            3 => 1, // Indexed
+            4 => 2, // Grayscale + Alpha
+            6 => 4, // RGBA
+            _ => 1
+        };
+
+        return samplesPerPixel * (bitDepth / 8);
+    }
+
+    private static byte[] DecompressZlib(byte[] data)
+    {
+        // Skip zlib header (2 bytes)
+        if (data.Length < 2)
+            return Array.Empty<byte>();
+
+        using var input = new MemoryStream(data, 2, data.Length - 2);
+        using var output = new MemoryStream();
+        using var deflate = new System.IO.Compression.DeflateStream(input, System.IO.Compression.CompressionMode.Decompress);
+
+        deflate.CopyTo(output);
+        return output.ToArray();
     }
 }
