@@ -229,18 +229,24 @@ public class ThreeMfExporter : I3MfExporter
 
     private static int GetColorIndex(float normalizedValue, List<ColorStop> gradient)
     {
+        if (gradient.Count == 0)
+            return 0;
+
+        // Sort gradient by position to ensure correct processing
+        var sortedGradient = gradient.OrderBy(g => g.Position).ToList();
+        
         normalizedValue = Math.Clamp(normalizedValue, 0, 1);
 
-        for (int i = 0; i < gradient.Count - 1; i++)
+        for (int i = 0; i < sortedGradient.Count - 1; i++)
         {
-            if (normalizedValue <= gradient[i + 1].Position)
+            if (normalizedValue <= sortedGradient[i + 1].Position)
             {
                 // Return the closest color stop index
-                var midpoint = (gradient[i].Position + gradient[i + 1].Position) / 2;
+                var midpoint = (sortedGradient[i].Position + sortedGradient[i + 1].Position) / 2;
                 return normalizedValue < midpoint ? i : i + 1;
             }
         }
 
-        return gradient.Count - 1;
+        return sortedGradient.Count - 1;
     }
 }

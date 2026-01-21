@@ -603,11 +603,18 @@ public class ElevationDataService : IElevationDataService
         if (data.Length < 2)
             return Array.Empty<byte>();
 
-        using var input = new MemoryStream(data, 2, data.Length - 2);
-        using var output = new MemoryStream();
-        using var deflate = new System.IO.Compression.DeflateStream(input, System.IO.Compression.CompressionMode.Decompress);
+        try
+        {
+            using var input = new MemoryStream(data, 2, data.Length - 2);
+            using var output = new MemoryStream();
+            using var deflate = new System.IO.Compression.DeflateStream(input, System.IO.Compression.CompressionMode.Decompress);
 
-        deflate.CopyTo(output);
-        return output.ToArray();
+            deflate.CopyTo(output);
+            return output.ToArray();
+        }
+        catch (System.IO.InvalidDataException ex)
+        {
+            throw new FormatException("Failed to decompress PNG image data. The file may be corrupted.", ex);
+        }
     }
 }
