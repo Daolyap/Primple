@@ -116,6 +116,19 @@ public class PrinterProfileService : IPrinterProfileService
                 HasEnclosure = false,
                 DefaultNozzleDiameter = 0.4,
                 MaxPrintSpeed = 500
+            },
+            new PrinterProfile
+            {
+                Model = BambuPrinterModel.P2S,
+                Name = "Bambu Lab P2S",
+                BuildVolumeX = 256,
+                BuildVolumeY = 256,
+                BuildVolumeZ = 256,
+                SupportsMultiMaterial = true,
+                MaxMaterialSlots = 4, // With AMS Lite
+                HasEnclosure = true,
+                DefaultNozzleDiameter = 0.4,
+                MaxPrintSpeed = 500
             }
         };
     }

@@ -1,0 +1,202 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TerrainMapGenerator.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+        x:Class="TerrainMapGenerator.Desktop.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Terrain Map Generator"
+        MinWidth="800" MinHeight="550"
+        Width="900" Height="600">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="*,Auto,Auto">
+        <!-- Main Content -->
+        <Grid Grid.Row="0" ColumnDefinitions="350,*" Margin="10">
+            <!-- Left Panel: Configuration -->
+            <Border Grid.Column="0" 
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                    CornerRadius="8"
+                    Padding="15"
+                    Margin="0,0,5,0">
+                <ScrollViewer>
+                    <StackPanel Spacing="15">
+                        <!-- File Selection -->
+                        <TextBlock Text="File Selection" FontWeight="Bold" FontSize="16"/>
+                        
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Input File (Elevation Data)"/>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBox Grid.Column="0" 
+                                         Text="{Binding InputFilePath}" 
+                                         Watermark="Select elevation data file..."
+                                         IsReadOnly="True"/>
+                                <Button Grid.Column="1" 
+                                        Content="Browse" 
+                                        Margin="5,0,0,0"
+                                        Name="BrowseInputButton"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Output File"/>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBox Grid.Column="0" 
+                                         Text="{Binding OutputFilePath}" 
+                                         Watermark="Select output location..."
+                                         IsReadOnly="True"/>
+                                <Button Grid.Column="1" 
+                                        Content="Browse" 
+                                        Margin="5,0,0,0"
+                                        Name="BrowseOutputButton"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <Separator Margin="0,10"/>
+
+                        <!-- Printer Profile -->
+                        <TextBlock Text="Printer Profile" FontWeight="Bold" FontSize="16"/>
+                        
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Printer"/>
+                            <ComboBox ItemsSource="{Binding PrinterProfiles}"
+                                      SelectedItem="{Binding SelectedPrinter}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <Separator Margin="0,10"/>
+
+                        <!-- Map Configuration -->
+                        <TextBlock Text="Map Configuration" FontWeight="Bold" FontSize="16"/>
+
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" Margin="0,5">
+                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="5" Margin="0,0,5,10">
+                                <TextBlock Text="Width (mm)"/>
+                                <NumericUpDown Value="{Binding OutputWidth}" 
+                                               Minimum="10" Maximum="500" 
+                                               Increment="10"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="5" Margin="5,0,0,10">
+                                <TextBlock Text="Height (mm)"/>
+                                <NumericUpDown Value="{Binding OutputHeight}" 
+                                               Minimum="10" Maximum="500" 
+                                               Increment="10"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="5" Margin="0,0,5,0">
+                                <TextBlock Text="Max Z Height (mm)"/>
+                                <NumericUpDown Value="{Binding MaxPrintHeight}" 
+                                               Minimum="5" Maximum="300" 
+                                               Increment="5"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="5" Margin="5,0,0,0">
+                                <TextBlock Text="Exaggeration"/>
+                                <NumericUpDown Value="{Binding VerticalExaggeration}" 
+                                               Minimum="0.5" Maximum="10" 
+                                               Increment="0.5"
+                                               FormatString="F1"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Base Type"/>
+                            <ComboBox ItemsSource="{Binding BaseTypes}"
+                                      SelectedItem="{Binding SelectedBaseType}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Base Thickness (mm)"/>
+                            <NumericUpDown Value="{Binding BaseThickness}" 
+                                           Minimum="1" Maximum="20" 
+                                           Increment="0.5"
+                                           FormatString="F1"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Right Panel: 3D Preview Placeholder -->
+            <Border Grid.Column="1" 
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                    CornerRadius="8"
+                    Margin="5,0,0,0">
+                <Grid>
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+                        <TextBlock Text="3D Preview" 
+                                   FontSize="24" 
+                                   FontWeight="Light"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        <TextBlock Text="Preview will appear here after generation" 
+                                   FontSize="14"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        <Border Width="100" Height="100" 
+                                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                                CornerRadius="8"
+                                HorizontalAlignment="Center">
+                            <Path Data="M12,2 L22,8.5 L22,15.5 L12,22 L2,15.5 L2,8.5 Z" 
+                                  Stroke="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                  StrokeThickness="1"
+                                  Stretch="Uniform"
+                                  Margin="20"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Generate Button and Progress -->
+        <Border Grid.Row="1" Margin="10,5,10,5">
+            <Grid ColumnDefinitions="*,Auto">
+                <ProgressBar Grid.Column="0" 
+                             Value="{Binding Progress}" 
+                             Maximum="100"
+                             IsIndeterminate="{Binding IsGenerating}"
+                             Height="30"
+                             Margin="0,0,10,0"/>
+                <Button Grid.Column="1" 
+                        Content="Generate Terrain Map"
+                        Command="{Binding GenerateCommand}"
+                        IsEnabled="{Binding !IsGenerating}"
+                        Width="180"
+                        Height="40"
+                        FontWeight="SemiBold"/>
+            </Grid>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" 
+                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                Padding="10,5">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBlock Grid.Column="0" 
+                           Text="{Binding StatusMessage}" 
+                           VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" 
+                           Text="{Binding SelectedPrinter.Name, StringFormat='Printer: {0}'}" 
+                           VerticalAlignment="Center"
+                           Margin="20,0"/>
+                <TextBlock Grid.Column="2" 
+                           VerticalAlignment="Center">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0:F0}x{1:F0}mm">
+                            <Binding Path="OutputWidth"/>
+                            <Binding Path="OutputHeight"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

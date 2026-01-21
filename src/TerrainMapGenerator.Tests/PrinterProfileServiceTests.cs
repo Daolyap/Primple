@@ -15,7 +15,7 @@ public class PrinterProfileServiceTests
         var profiles = _service.GetAllProfiles();
 
         Assert.NotEmpty(profiles);
-        Assert.Equal(6, profiles.Count); // X1C, X1E, P1P, P1S, A1, A1Mini
+        Assert.Equal(7, profiles.Count); // X1C, X1E, P1P, P1S, A1, A1Mini, P2S
     }
 
     [Theory]
@@ -25,6 +25,7 @@ public class PrinterProfileServiceTests
     [InlineData(BambuPrinterModel.P1S)]
     [InlineData(BambuPrinterModel.A1)]
     [InlineData(BambuPrinterModel.A1Mini)]
+    [InlineData(BambuPrinterModel.P2S)]
     public void GetProfile_ReturnsCorrectProfile(BambuPrinterModel model)
     {
         var profile = _service.GetProfile(model);
@@ -141,5 +142,47 @@ public class PrinterProfileServiceTests
         var result = profile.ValidateConfiguration(config);
 
         Assert.NotEmpty(result.Warnings);
+    }
+
+    [Fact]
+    public void P2S_HasCorrectBuildVolume()
+    {
+        var profile = _service.GetProfile(BambuPrinterModel.P2S);
+
+        Assert.NotNull(profile);
+        Assert.Equal(256, profile.BuildVolumeX);
+        Assert.Equal(256, profile.BuildVolumeY);
+        Assert.Equal(256, profile.BuildVolumeZ);
+    }
+
+    [Fact]
+    public void P2S_HasEnclosure()
+    {
+        var profile = _service.GetProfile(BambuPrinterModel.P2S);
+
+        Assert.NotNull(profile);
+        Assert.True(profile.HasEnclosure);
+    }
+
+    [Fact]
+    public void P2S_SupportsMultiMaterial()
+    {
+        var profile = _service.GetProfile(BambuPrinterModel.P2S);
+
+        Assert.NotNull(profile);
+        Assert.True(profile.SupportsMultiMaterial);
+        Assert.Equal(4, profile.MaxMaterialSlots);
+    }
+
+    [Theory]
+    [InlineData("P2S")]
+    [InlineData("p2s")]
+    [InlineData("Bambu Lab P2S")]
+    public void GetProfileByName_FindsP2SProfile(string name)
+    {
+        var profile = _service.GetProfileByName(name);
+
+        Assert.NotNull(profile);
+        Assert.Equal(BambuPrinterModel.P2S, profile.Model);
     }
 }

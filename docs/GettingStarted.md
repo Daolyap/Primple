@@ -106,6 +106,7 @@ Built-in support for Bambu Labs printers:
 - X1E
 - P1P
 - P1S
+- P2S
 - A1
 - A1 Mini
 
@@ -114,6 +115,30 @@ var printerService = new PrinterProfileService();
 var printer = printerService.GetProfileByName("X1C");
 var constrainedConfig = printer.CreateConstrainedConfiguration(config);
 ```
+
+## Desktop Application
+
+The Terrain Map Generator also provides a cross-platform desktop application with a graphical user interface.
+
+### Running the Desktop Application
+
+Download the appropriate version for your platform from the releases page, or build from source:
+
+```bash
+# Build the desktop application
+dotnet build src/TerrainMapGenerator.Desktop/TerrainMapGenerator.Desktop.csproj
+
+# Run the desktop application
+dotnet run --project src/TerrainMapGenerator.Desktop/TerrainMapGenerator.Desktop.csproj
+```
+
+### Desktop Features
+
+- **File Selection**: Browse and select input elevation data files (ASC, GeoTIFF, HGT, PNG, XYZ)
+- **Printer Profiles**: Select from built-in Bambu Labs printer profiles
+- **Configuration Controls**: Adjust width, height, exaggeration, base type, and more
+- **Progress Indicator**: Track generation progress
+- **3D Preview**: Preview area for generated terrain (coming soon)
 
 ## Examples
 

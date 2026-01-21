@@ -33,5 +33,10 @@ public enum BambuPrinterModel
     /// <summary>
     /// Bambu Lab A1 mini.
     /// </summary>
-    A1Mini
+    A1Mini,
+
+    /// <summary>
+    /// Bambu Lab P2S.
+    /// </summary>
+    P2S
 }
