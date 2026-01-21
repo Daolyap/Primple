@@ -274,7 +274,8 @@ public class ElevationDataService : IElevationDataService
         foreach (var (x, y, z) in points)
         {
             int col = (int)Math.Round((x - minX) / cellSize);
-            int row = (int)Math.Round((maxY - y) / cellSize); // Y is often inverted
+            // Convert from geographic Y (increases northward) to array row (row 0 is north/top)
+            int row = (int)Math.Round((maxY - y) / cellSize);
             if (row >= 0 && row < height && col >= 0 && col < width)
             {
                 elevationData.SetValue(row, col, z);
