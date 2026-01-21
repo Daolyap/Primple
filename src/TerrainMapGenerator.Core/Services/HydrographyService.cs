@@ -90,16 +90,15 @@ public class HydrographyService : IHydrographyService
         foreach (var feature in features.EnumerateArray())
         {
             var waterFeature = ParseGeoJsonFeature(feature, bounds);
-            if (waterFeature != null)
+            if (waterFeature == null) continue;
+            
+            if (waterFeature.Type == WaterFeatureType.River || waterFeature.Type == WaterFeatureType.Stream)
             {
-                if (waterFeature.Type == WaterFeatureType.River || waterFeature.Type == WaterFeatureType.Stream)
-                {
-                    result.Rivers.Add(waterFeature);
-                }
-                else
-                {
-                    result.Lakes.Add(waterFeature);
-                }
+                result.Rivers.Add(waterFeature);
+            }
+            else
+            {
+                result.Lakes.Add(waterFeature);
             }
         }
 
@@ -305,10 +304,8 @@ public class HydrographyService : IHydrographyService
         int[] dc = { 1, 1, 0, -1, -1, -1, 0, 1 };
         int[] dirValues = { 1, 2, 4, 8, 16, 32, 64, 128 };
 
-        foreach (var start in startPoints)
+        foreach (var start in startPoints.Where(s => !visited[s.Row, s.Col]))
         {
-            if (visited[start.Row, start.Col]) continue;
-
             var river = new WaterFeature
             {
                 Type = start.Accumulation > options.FlowAccumulationThreshold * 10 

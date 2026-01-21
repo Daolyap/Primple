@@ -56,12 +56,8 @@ public class ContourGenerator : IContourGenerator
         {
             var contourLines = ExtractContourLines(elevationData, level, options);
 
-            foreach (var line in contourLines)
+            foreach (var line in contourLines.Where(l => CalculateLineLength(l) >= options.MinSegmentLength))
             {
-                // Filter short segments
-                if (CalculateLineLength(line) < options.MinSegmentLength)
-                    continue;
-
                 // Apply smoothing if requested
                 if (options.SmoothContours && line.Points.Count > 2)
                 {

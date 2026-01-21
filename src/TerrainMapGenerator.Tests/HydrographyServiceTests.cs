@@ -207,7 +207,7 @@ public class HydrographyServiceTests
         {
             for (int col = 0; col < 20; col++)
             {
-                data.SetValue(row, col, 100 - row * 2 - col);
+                data.SetValue(row, col, 100f - row * 2f - col);
             }
         }
         
@@ -225,7 +225,7 @@ public class HydrographyServiceTests
             {
                 // Create a valley down the middle
                 float distanceFromCenter = Math.Abs(col - 10);
-                float elevation = distanceFromCenter * 5 + (19 - row) * 2;
+                float elevation = distanceFromCenter * 5f + (19 - row) * 2f;
                 data.SetValue(row, col, elevation);
             }
         }

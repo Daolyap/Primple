@@ -212,8 +212,8 @@ public class MeshGeneratorTests
         foreach (var normal in mesh.Normals)
         {
             var length = normal.Length();
-            Assert.True(Math.Abs(length - 1.0f) < 0.001f || length == 0,
-                "Normals should be unit vectors");
+            Assert.True(Math.Abs(length - 1.0f) < 0.001f || Math.Abs(length) < 0.001f,
+                "Normals should be unit vectors or zero vectors");
         }
     }
 

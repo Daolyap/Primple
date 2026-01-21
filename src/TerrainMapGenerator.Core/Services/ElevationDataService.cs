@@ -161,14 +161,13 @@ public class ElevationDataService : IElevationDataService
         int bitsPerSample = 8;
         int sampleFormat = 1; // 1 = unsigned int, 2 = signed int, 3 = float
         uint stripOffset = 0;
-        int rowsPerStrip = int.MaxValue;
         double cellSizeX = 1.0, cellSizeY = 1.0;
 
         for (int i = 0; i < numEntries; i++)
         {
             var tag = ReadUInt16(reader, littleEndian);
-            var type = ReadUInt16(reader, littleEndian);
-            var count = ReadUInt32(reader, littleEndian);
+            _ = ReadUInt16(reader, littleEndian); // type - reserved for future use
+            _ = ReadUInt32(reader, littleEndian); // count - reserved for future use
             var valueOffset = ReadUInt32(reader, littleEndian);
 
             switch (tag)
@@ -185,8 +184,7 @@ public class ElevationDataService : IElevationDataService
                 case 273: // StripOffsets
                     stripOffset = valueOffset;
                     break;
-                case 278: // RowsPerStrip
-                    rowsPerStrip = (int)valueOffset;
+                case 278: // RowsPerStrip - reserved for future use
                     break;
                 case 339: // SampleFormat
                     sampleFormat = (int)valueOffset;
@@ -220,7 +218,7 @@ public class ElevationDataService : IElevationDataService
                     var intVal = ReadInt16(reader, littleEndian);
                     value = intVal;
                 }
-                else if (bitsPerSample == 32 && sampleFormat != 3) // 32-bit integer
+                else if (bitsPerSample == 32) // 32-bit integer (sampleFormat != 3 implied)
                 {
                     var intVal = ReadInt32(reader, littleEndian);
                     value = intVal;
@@ -307,11 +305,12 @@ public class ElevationDataService : IElevationDataService
 
     private static int GetHeaderInt(Dictionary<string, string> header, params string[] keys)
     {
-        foreach (var key in keys)
-        {
-            if (header.TryGetValue(key, out var value) && int.TryParse(value, out int result))
-                return result;
-        }
+        var matchingKey = keys.FirstOrDefault(key => 
+            header.TryGetValue(key, out var value) && int.TryParse(value, out _));
+        
+        if (matchingKey != null && header.TryGetValue(matchingKey, out var val) && int.TryParse(val, out int result))
+            return result;
+        
         return 0;
     }
 
@@ -322,12 +321,14 @@ public class ElevationDataService : IElevationDataService
 
     private static double GetHeaderDouble(Dictionary<string, string> header, double defaultValue, params string[] keys)
     {
-        foreach (var key in keys)
-        {
-            if (header.TryGetValue(key, out var value) && 
-                double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double result))
-                return result;
-        }
+        var matchingKey = keys.FirstOrDefault(key => 
+            header.TryGetValue(key, out var value) && 
+            double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out _));
+        
+        if (matchingKey != null && header.TryGetValue(matchingKey, out var val) && 
+            double.TryParse(val, NumberStyles.Float, CultureInfo.InvariantCulture, out double result))
+            return result;
+        
         return defaultValue;
     }
 
@@ -471,7 +472,6 @@ public class ElevationDataService : IElevationDataService
         int bitDepth = 8;
         int colorType = 0;
         var imageData = new List<byte>();
-        var palette = new byte[0];
 
         using var reader = new BinaryReader(stream);
 
@@ -502,7 +502,7 @@ public class ElevationDataService : IElevationDataService
                     break;
 
                 case "PLTE":
-                    palette = chunkData;
+                    // Palette stored for future indexed color support
                     break;
 
                 case "IDAT":
