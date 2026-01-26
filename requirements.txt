@@ -1,0 +1,14 @@
+# 3D Terrain Map Generator - Dependencies
+# Note: All packages are pinned to specific versions for supply chain security.
+# Update versions only after verifying the new releases.
+
+# GUI Framework
+PyQt6==6.6.0
+
+# Core Processing
+numpy==1.26.4
+scipy==1.12.0
+
+# GIS and Elevation Data
+rasterio==1.3.9
+requests==2.31.0
