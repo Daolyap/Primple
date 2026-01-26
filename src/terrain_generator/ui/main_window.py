@@ -109,7 +109,7 @@ class MapSelectionPanel(QWidget):
         "Norwegian Fjords": (61.5000, 6.0000),
         "Iceland Volcanic": (64.9631, -19.0208),
         "Himalayas": (28.0000, 85.0000),
-        "Andes Mountains": (-13.1631, -72.5450),
+        "Andes Mountains": (-22.8371, -67.0544),  # Corrected: Andes central region
         "Patagonia": (-50.9423, -73.4068),
         "Mount Cook": (-43.5950, 170.1418),
         "Blue Mountains": (-33.7000, 150.3000),
@@ -483,9 +483,8 @@ class GenerateMeshWorker(QThread):
             
             # Generate a unique seed based on location bounds to get different terrain
             # for different locations (avoiding the fixed seed=42 that caused repeating terrain)
-            min_lon, min_lat, max_lon, max_lat = self.bounds
-            # Create a seed from location that produces varied but reproducible results
-            seed = int(abs(min_lat * 10000 + min_lon * 1000 + max_lat * 100 + max_lon * 10)) % (2**31)
+            # Use hash() on the bounds tuple for better distribution and to avoid collisions
+            seed = abs(hash(self.bounds)) % (2**31)
             
             source = SyntheticElevationSource(seed=seed)
             elevation, metadata = source.get_elevation_data(self.bounds, 
