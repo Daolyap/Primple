@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Primple.App/Primple.App.csproj" />
+    <Project Path="src/Primple.Core/Primple.Core.csproj" />
+  </Folder>
+</Solution>

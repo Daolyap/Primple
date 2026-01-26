@@ -1,0 +1,502 @@
+<Window x:Class="Primple.App.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:helix="http://helix-toolkit.org/wpf"
+        xmlns:vm="clr-namespace:Primple.App.ViewModels"
+        mc:Ignorable="d"
+        Title="Primple - 3D Terrain Map Generator"
+        Height="800" Width="1400"
+        MinHeight="600" MinWidth="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource PrimaryDarkBrush}"
+        TextElement.Foreground="{StaticResource TextPrimaryBrush}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        FontFamily="{materialDesign:MaterialDesignFont}">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header / Toolbar -->
+        <Border Grid.Row="0" Background="{StaticResource HeaderGradient}" Padding="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Logo and Title -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <materialDesign:PackIcon Kind="Terrain" Width="32" Height="32" Foreground="{StaticResource AccentBrush}" Margin="0,0,8,0" />
+                    <TextBlock Text="Primple" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="3D Terrain Map Generator" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="12,0,0,0" />
+                </StackPanel>
+
+                <!-- Main Actions -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding NewProjectCommand}" ToolTip="New Project">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="FileDocumentPlus" />
+                            <TextBlock Text="New" Margin="4,0,0,0" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding ImportElevationFileCommand}" ToolTip="Import Elevation File">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="FileImport" />
+                            <TextBlock Text="Import" Margin="4,0,0,0" />
+                        </StackPanel>
+                    </Button>
+                    <Separator Style="{StaticResource MaterialDesignLightSeparator}" Margin="8,4" />
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding ExportStlCommand}" ToolTip="Export STL">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Printer3d" />
+                            <TextBlock Text="Export STL" Margin="4,0,0,0" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding Export3MFCommand}" ToolTip="Export 3MF">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="CubeOutline" />
+                            <TextBlock Text="Export 3MF" Margin="4,0,0,0" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="320" MinWidth="280" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="300" MinWidth="250" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel: Map Selection -->
+            <Border Grid.Column="0" Style="{StaticResource PanelStyle}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource PanelHeaderStyle}">
+                            <materialDesign:PackIcon Kind="MapSearch" Margin="0,0,4,0" VerticalAlignment="Center" />
+                            <Run Text="Location Selection" />
+                        </TextBlock>
+
+                        <!-- Search Box -->
+                        <materialDesign:Card Background="{StaticResource PrimaryLightBrush}" Padding="8" Margin="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" 
+                                         Text="{Binding MapSelection.SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="Search location..."
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Margin="0,0,4,0">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding MapSelection.SearchCommand}" />
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                                <Button Grid.Column="1" 
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        Command="{Binding MapSelection.SearchCommand}">
+                                    <materialDesign:PackIcon Kind="Magnify" />
+                                </Button>
+                            </Grid>
+                        </materialDesign:Card>
+
+                        <!-- Search Results -->
+                        <ItemsControl ItemsSource="{Binding MapSelection.SearchResults}" Margin="0,0,0,8">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                            Command="{Binding DataContext.MapSelection.SelectLocationCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            HorizontalContentAlignment="Left"
+                                            Margin="0,2">
+                                        <StackPanel Orientation="Horizontal">
+                                            <materialDesign:PackIcon Kind="MapMarker" Foreground="{StaticResource AccentBrush}" />
+                                            <TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" MaxWidth="250" Margin="8,0,0,0" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Coordinate Input -->
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Coordinates" />
+                        <materialDesign:Card Background="{StaticResource PrimaryLightBrush}" Padding="8" Margin="0,0,0,8">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Latitude" />
+                                <TextBox Text="{Binding MapSelection.CenterLatitude, StringFormat=F6}"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Margin="0,0,0,8" />
+                                
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Longitude" />
+                                <TextBox Text="{Binding MapSelection.CenterLongitude, StringFormat=F6}"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Margin="0,0,0,8" />
+
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Selection Size (km)" />
+                                <Slider Value="{Binding MapSelection.SelectionSizeKm}"
+                                        Minimum="1" Maximum="100"
+                                        TickFrequency="10" IsSnapToTickEnabled="False"
+                                        Style="{StaticResource MaterialDesignDiscreteSlider}" />
+                                <TextBlock Text="{Binding MapSelection.SelectionSizeKm, StringFormat={}{0:F1} km}"
+                                           HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </materialDesign:Card>
+
+                        <!-- Fetch Button -->
+                        <Button Command="{Binding FetchElevationDataCommand}"
+                                Style="{StaticResource MaterialDesignRaisedAccentButton}"
+                                Margin="0,8">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Download" Margin="0,0,8,0" />
+                                <TextBlock Text="Fetch Elevation Data" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Selection Info -->
+                        <materialDesign:Card Background="{StaticResource PrimaryLightBrush}" Padding="8" Margin="0,8,0,0"
+                                              Visibility="{Binding MapSelection.SelectedBounds, Converter={StaticResource BoolToVis}}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Selected Region" />
+                                <TextBlock Text="{Binding MapSelection.CoordinateDisplay}" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Width="4" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Stretch" />
+
+            <!-- Center Panel: 3D Preview -->
+            <Border Grid.Column="2" Style="{StaticResource PanelStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Preview Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <TextBlock Style="{StaticResource PanelHeaderStyle}">
+                            <materialDesign:PackIcon Kind="Rotate3d" Margin="0,0,4,0" VerticalAlignment="Center" />
+                            <Run Text="3D Preview" />
+                        </TextBlock>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Style="{StaticResource MaterialDesignIconButton}" Command="{Binding TerrainPreview.SetTopViewCommand}" ToolTip="Top View">
+                                <materialDesign:PackIcon Kind="ArrowUpBold" />
+                            </Button>
+                            <Button Style="{StaticResource MaterialDesignIconButton}" Command="{Binding TerrainPreview.SetFrontViewCommand}" ToolTip="Front View">
+                                <materialDesign:PackIcon Kind="ArrowLeftBold" />
+                            </Button>
+                            <Button Style="{StaticResource MaterialDesignIconButton}" Command="{Binding TerrainPreview.SetPerspectiveViewCommand}" ToolTip="Perspective View">
+                                <materialDesign:PackIcon Kind="CubeOutline" />
+                            </Button>
+                            <Button Style="{StaticResource MaterialDesignIconButton}" Command="{Binding TerrainPreview.ResetCameraCommand}" ToolTip="Reset Camera">
+                                <materialDesign:PackIcon Kind="Refresh" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 3D Viewport -->
+                    <Border Grid.Row="1" Background="#1E1E2E" CornerRadius="4">
+                        <helix:HelixViewport3D 
+                            x:Name="viewport3D"
+                            Background="#1E1E2E"
+                            ShowCoordinateSystem="True"
+                            CoordinateSystemLabelForeground="White"
+                            ZoomExtentsWhenLoaded="True"
+                            RotateAroundMouseDownPoint="True"
+                            ZoomAroundMouseDownPoint="True">
+                            
+                            <helix:HelixViewport3D.Camera>
+                                <PerspectiveCamera 
+                                    Position="{Binding TerrainPreview.CameraPosition}"
+                                    LookDirection="{Binding TerrainPreview.CameraLookDirection}"
+                                    UpDirection="{Binding TerrainPreview.CameraUpDirection}"
+                                    FieldOfView="{Binding TerrainPreview.CameraFieldOfView}" />
+                            </helix:HelixViewport3D.Camera>
+
+                            <helix:DefaultLights />
+                            
+                            <ModelVisual3D Content="{Binding TerrainPreview.Model3D}" />
+                            
+                            <helix:GridLinesVisual3D Width="256" Length="256" MajorDistance="50" MinorDistance="10" 
+                                                      Thickness="0.5" Fill="#30808080" />
+                        </helix:HelixViewport3D>
+                    </Border>
+
+                    <!-- Preview Stats -->
+                    <Border Grid.Row="2" Background="{StaticResource PrimaryLightBrush}" CornerRadius="4" Padding="8" Margin="0,8,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                <TextBlock Text="Triangles" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding TriangleCount, StringFormat={}{0:N0}}" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                <TextBlock Text="Dimensions" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding Dimensions}" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                <TextBlock Text="Print Time" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding EstimatedPrintTime, StringFormat={}{0:F0} min}" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3" HorizontalAlignment="Center">
+                                <TextBlock Text="Filament" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding EstimatedFilamentGrams, StringFormat={}{0:F1} g}" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <GridSplitter Grid.Column="3" Width="4" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Stretch" />
+
+            <!-- Right Panel: Settings -->
+            <Border Grid.Column="4" Style="{StaticResource PanelStyle}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource PanelHeaderStyle}">
+                            <materialDesign:PackIcon Kind="Cog" Margin="0,0,4,0" VerticalAlignment="Center" />
+                            <Run Text="Settings" />
+                        </TextBlock>
+
+                        <!-- Printer Section -->
+                        <Expander Header="Printer" IsExpanded="True" Style="{StaticResource SettingsExpander}">
+                            <StackPanel Margin="8">
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Printer Model" />
+                                <ComboBox ItemsSource="{Binding Settings.AvailablePrinters}"
+                                          SelectedItem="{Binding Settings.SelectedPrinter}"
+                                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                          Margin="0,0,0,8" />
+                                <TextBlock Text="{Binding Settings.PrinterBuildVolume, StringFormat=Build Volume: {0}}"
+                                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
+
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Material" Margin="0,12,0,4" />
+                                <ComboBox ItemsSource="{Binding Settings.AvailableMaterials}"
+                                          SelectedItem="{Binding Settings.SelectedMaterial}"
+                                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                          Margin="0,0,0,4" />
+                                <TextBlock Text="{Binding Settings.MaterialUseCase}"
+                                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Expander>
+
+                        <!-- Terrain Section -->
+                        <Expander Header="Terrain" IsExpanded="True" Style="{StaticResource SettingsExpander}">
+                            <StackPanel Margin="8">
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Vertical Exaggeration" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="50" />
+                                    </Grid.ColumnDefinitions>
+                                    <Slider Grid.Column="0" Value="{Binding Settings.VerticalExaggeration}"
+                                            Minimum="0.5" Maximum="20" TickFrequency="0.5" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Settings.VerticalExaggeration, StringFormat={}{0:F1}x}"
+                                               VerticalAlignment="Center" HorizontalAlignment="Right" />
+                                </Grid>
+
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Smoothing" Margin="0,8,0,4" />
+                                <ComboBox ItemsSource="{Binding Settings.AvailableSmoothingMethods}"
+                                          SelectedItem="{Binding Settings.SmoothingMethod}"
+                                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                          Margin="0,0,0,4" />
+
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Smoothing Radius" />
+                                <Slider Value="{Binding Settings.SmoothingRadius}"
+                                        Minimum="0" Maximum="5" TickFrequency="0.5" />
+
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Mesh Resolution" Margin="0,8,0,4" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="50" />
+                                    </Grid.ColumnDefinitions>
+                                    <Slider Grid.Column="0" Value="{Binding Settings.MeshResolution}"
+                                            Minimum="100" Maximum="1000" TickFrequency="100" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Settings.MeshResolution}"
+                                               VerticalAlignment="Center" HorizontalAlignment="Right" />
+                                </Grid>
+                            </StackPanel>
+                        </Expander>
+
+                        <!-- Size Section -->
+                        <Expander Header="Size" IsExpanded="True" Style="{StaticResource SettingsExpander}">
+                            <StackPanel Margin="8">
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Size Preset" />
+                                <ComboBox ItemsSource="{Binding Settings.AvailableSizePresets}"
+                                          SelectedItem="{Binding Settings.SizePreset}"
+                                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                          Margin="0,0,0,8" />
+
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Width (mm)" />
+                                <TextBox Text="{Binding Settings.CustomWidth, StringFormat=F1}"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         IsEnabled="{Binding Settings.IsCustomSize}"
+                                         Margin="0,0,0,4" />
+
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Length (mm)" />
+                                <TextBox Text="{Binding Settings.CustomLength, StringFormat=F1}"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         IsEnabled="{Binding Settings.IsCustomSize}"
+                                         Margin="0,0,0,4" />
+
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Max Height (mm)" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="50" />
+                                    </Grid.ColumnDefinitions>
+                                    <Slider Grid.Column="0" Value="{Binding Settings.MaxHeight}"
+                                            Minimum="10" Maximum="100" TickFrequency="5" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Settings.MaxHeight, StringFormat={}{0:F0}}"
+                                               VerticalAlignment="Center" HorizontalAlignment="Right" />
+                                </Grid>
+
+                                <CheckBox Content="Maintain Aspect Ratio"
+                                          IsChecked="{Binding Settings.MaintainAspectRatio}"
+                                          Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Expander>
+
+                        <!-- Base Section -->
+                        <Expander Header="Base &amp; Structure" Style="{StaticResource SettingsExpander}">
+                            <StackPanel Margin="8">
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Base Type" />
+                                <ComboBox ItemsSource="{Binding Settings.AvailableBaseTypes}"
+                                          SelectedItem="{Binding Settings.BaseType}"
+                                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                          Margin="0,0,0,8" />
+
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Base Thickness (mm)" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="50" />
+                                    </Grid.ColumnDefinitions>
+                                    <Slider Grid.Column="0" Value="{Binding Settings.BaseThickness}"
+                                            Minimum="1" Maximum="20" TickFrequency="1" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Settings.BaseThickness, StringFormat={}{0:F1}}"
+                                               VerticalAlignment="Center" HorizontalAlignment="Right" />
+                                </Grid>
+
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Edge Treatment" Margin="0,8,0,4" />
+                                <ComboBox ItemsSource="{Binding Settings.AvailableEdgeTreatments}"
+                                          SelectedItem="{Binding Settings.EdgeTreatment}"
+                                          Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+                            </StackPanel>
+                        </Expander>
+
+                        <!-- Print Settings -->
+                        <Expander Header="Print Settings" Style="{StaticResource SettingsExpander}">
+                            <StackPanel Margin="8">
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Layer Height (mm)" />
+                                <ComboBox SelectedValue="{Binding Settings.LayerHeight}"
+                                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                          Margin="0,0,0,8">
+                                    <ComboBoxItem Content="0.08mm (Ultra Fine)" Tag="0.08" />
+                                    <ComboBoxItem Content="0.12mm (Fine)" Tag="0.12" />
+                                    <ComboBoxItem Content="0.16mm (Standard)" Tag="0.16" />
+                                    <ComboBoxItem Content="0.20mm (Draft)" Tag="0.2" IsSelected="True" />
+                                    <ComboBoxItem Content="0.28mm (Fast)" Tag="0.28" />
+                                </ComboBox>
+
+                                <TextBlock Style="{StaticResource LabelStyle}" Text="Infill (%)" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="50" />
+                                    </Grid.ColumnDefinitions>
+                                    <Slider Grid.Column="0" Value="{Binding Settings.InfillPercentage}"
+                                            Minimum="5" Maximum="100" TickFrequency="5" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Settings.InfillPercentage, StringFormat={}{0:F0}%}"
+                                               VerticalAlignment="Center" HorizontalAlignment="Right" />
+                                </Grid>
+                            </StackPanel>
+                        </Expander>
+
+                        <!-- Validation -->
+                        <materialDesign:Card Background="{StaticResource PrimaryLightBrush}" Padding="8" Margin="0,8,0,0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="10" Height="10" Margin="0,0,8,0"
+                                             Fill="{Binding IsMeshValid, Converter={StaticResource BoolToVis}, ConverterParameter=Green}" />
+                                    <TextBlock Text="Mesh Status" FontWeight="SemiBold" />
+                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding ValidationMessages}" Margin="0,4,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </materialDesign:Card>
+
+                        <!-- Generate Button -->
+                        <Button Command="{Binding GenerateMeshCommand}"
+                                Style="{StaticResource MaterialDesignRaisedAccentButton}"
+                                Margin="0,16,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Cube" Margin="0,0,8,0" />
+                                <TextBlock Text="Regenerate Mesh" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{StaticResource PrimaryMidBrush}" Padding="8,4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="200" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" />
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
+                    <TextBlock Text="File Size: " Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding EstimatedFileSize, StringFormat={}{0:N0} bytes}" />
+                </StackPanel>
+
+                <ProgressBar Grid.Column="2" Value="{Binding Progress}" 
+                             Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
+                             Style="{StaticResource MaterialDesignLinearProgressBar}" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
