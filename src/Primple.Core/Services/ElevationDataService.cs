@@ -37,8 +37,12 @@ public class ElevationDataService : IElevationDataService
         if (cachedData != null)
             return cachedData;
 
-        // Try to fetch from OpenTopography or similar service
-        // For now, generate sample data for demonstration
+        // NOTE: Currently using procedurally generated sample data for demonstration.
+        // TODO: Integrate with real elevation data APIs:
+        // - OpenTopography API (requires API key)
+        // - NASA SRTM data servers
+        // - Mapbox Terrain-RGB tiles
+        // For production use, implement these data source integrations.
         var elevationData = GenerateSampleElevationData(bounds);
 
         // Cache the data
@@ -149,11 +153,18 @@ public class ElevationDataService : IElevationDataService
         };
     }
 
-    private async Task<ElevationData> LoadGeoTiffAsync(string filePath, CancellationToken cancellationToken)
+    private Task<ElevationData> LoadGeoTiffAsync(string filePath, CancellationToken cancellationToken)
     {
-        // GeoTIFF loading requires GDAL or similar library
-        // For now, throw not implemented
-        throw new NotImplementedException("GeoTIFF support requires additional libraries");
+        // GeoTIFF loading requires GDAL or similar library (GDAL.NET)
+        // This is a limitation of the current implementation.
+        // To add GeoTIFF support:
+        // 1. Add GDAL.NET NuGet package
+        // 2. Implement reading with GDAL's dataset API
+        // 3. Extract elevation bands and georeferencing info
+        throw new NotSupportedException(
+            "GeoTIFF format is not currently supported. " +
+            "Please use ASCII Grid (.asc), HGT (.hgt), or XYZ (.xyz) formats instead. " +
+            "You can convert GeoTIFF files using GDAL or QGIS.");
     }
 
     private async Task<ElevationData> LoadAsciiGridAsync(string filePath, CancellationToken cancellationToken)

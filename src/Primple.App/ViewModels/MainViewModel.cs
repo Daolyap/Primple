@@ -8,6 +8,7 @@ using Primple.Core.Models;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Numerics;
+using System.Timers;
 
 namespace Primple.App.ViewModels;
 
@@ -21,6 +22,10 @@ public partial class MainViewModel : ObservableObject
     private readonly IExportService _exportService;
     private readonly IGeocodingService _geocodingService;
     private readonly IDialogService _dialogService;
+    
+    // Debounce timer for settings changes to avoid regenerating mesh on every slider tick
+    private readonly System.Timers.Timer _settingsDebounceTimer;
+    private const int DebounceDelayMs = 300;
 
     [ObservableProperty]
     private TerrainProject _currentProject;
@@ -83,6 +88,11 @@ public partial class MainViewModel : ObservableObject
         _settings = new SettingsViewModel();
         _terrainPreview = new TerrainPreviewViewModel();
 
+        // Initialize debounce timer for settings changes
+        _settingsDebounceTimer = new System.Timers.Timer(DebounceDelayMs);
+        _settingsDebounceTimer.AutoReset = false;
+        _settingsDebounceTimer.Elapsed += OnSettingsDebounceElapsed;
+
         // Subscribe to map selection changes
         _mapSelection.PropertyChanged += (s, e) =>
         {
@@ -92,15 +102,26 @@ public partial class MainViewModel : ObservableObject
             }
         };
 
-        // Subscribe to settings changes for live preview
-        _settings.PropertyChanged += async (s, e) =>
+        // Subscribe to settings changes for live preview with debouncing
+        _settings.PropertyChanged += (s, e) =>
         {
             if (CurrentProject.ElevationData != null)
             {
-                UpdateProjectSettings();
-                await GenerateMeshAsync();
+                // Reset timer on each change - mesh will regenerate after delay
+                _settingsDebounceTimer.Stop();
+                _settingsDebounceTimer.Start();
             }
         };
+    }
+
+    private async void OnSettingsDebounceElapsed(object? sender, ElapsedEventArgs e)
+    {
+        // Execute on UI thread
+        await System.Windows.Application.Current.Dispatcher.InvokeAsync(async () =>
+        {
+            UpdateProjectSettings();
+            await GenerateMeshAsync();
+        });
     }
 
     private void UpdateProjectSettings()

@@ -447,15 +447,25 @@ public class MeshGeneratorService : IMeshGeneratorService
 
     /// <summary>
     /// Optimizes mesh by reducing polygon count.
+    /// NOTE: This is a placeholder implementation that returns the original mesh.
+    /// Full mesh optimization would require implementing edge collapse or quadric error metrics,
+    /// or using a library like MeshDecimator.
     /// </summary>
+    /// <param name="mesh">The mesh to optimize</param>
+    /// <param name="targetTriangles">Target number of triangles</param>
+    /// <returns>The mesh (currently returns original - optimization not implemented)</returns>
     public TerrainMesh OptimizeMesh(TerrainMesh mesh, int targetTriangles)
     {
         if (mesh.TriangleCount <= targetTriangles)
             return mesh;
 
-        // Simple decimation - for a proper implementation, use a library like MeshDecimator
-        // This is a placeholder that returns the original mesh
-        // In production, you would use edge collapse or quadric error metrics
+        // TODO: Implement mesh decimation using one of these approaches:
+        // 1. Edge collapse with quadric error metrics
+        // 2. Vertex clustering
+        // 3. Use MeshDecimator NuGet package
+        // For now, return original mesh with a warning log
+        // In production, proper decimation would significantly reduce file sizes
+        // while preserving terrain features.
         return mesh;
     }
 }
