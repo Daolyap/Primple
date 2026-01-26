@@ -12,9 +12,9 @@ from PyQt6.QtWidgets import (
     QSplitter, QTabWidget, QGroupBox, QLabel, QDoubleSpinBox,
     QSpinBox, QComboBox, QPushButton, QFileDialog, QStatusBar,
     QToolBar, QProgressBar, QMessageBox, QFrame,
-    QScrollArea, QFormLayout
+    QScrollArea, QFormLayout, QLineEdit, QCompleter
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QStringListModel
 from PyQt6.QtGui import QAction
 
 # Import our modules using relative imports
@@ -83,12 +83,82 @@ class MapSelectionPanel(QWidget):
     
     location_changed = pyqtSignal(tuple)
     
+    # Database of known locations for search
+    KNOWN_LOCATIONS = {
+        "Mount Everest": (27.9881, 86.9250),
+        "Grand Canyon": (36.1069, -112.1129),
+        "Matterhorn": (45.9766, 7.6586),
+        "Mount Fuji": (35.3606, 138.7274),
+        "Yosemite Valley": (37.7456, -119.5936),
+        "Denali": (63.0695, -151.0074),
+        "Mount Kilimanjaro": (-3.0674, 37.3556),
+        "Mount Rainier": (46.8523, -121.7603),
+        "Mount Hood": (45.3735, -121.6959),
+        "Crater Lake": (42.9446, -122.1090),
+        "Yellowstone": (44.4280, -110.5885),
+        "Zion National Park": (37.2982, -113.0263),
+        "Bryce Canyon": (37.5930, -112.1871),
+        "Arches National Park": (38.7331, -109.5925),
+        "Rocky Mountain National Park": (40.3428, -105.6836),
+        "Glacier National Park": (48.7596, -113.7870),
+        "Mont Blanc": (45.8326, 6.8652),
+        "Swiss Alps": (46.8182, 8.2275),
+        "Dolomites": (46.4102, 11.8440),
+        "Pyrenees": (42.6500, 1.0000),
+        "Scottish Highlands": (57.1200, -4.7100),
+        "Norwegian Fjords": (61.5000, 6.0000),
+        "Iceland Volcanic": (64.9631, -19.0208),
+        "Himalayas": (28.0000, 85.0000),
+        "Andes Mountains": (-13.1631, -72.5450),
+        "Patagonia": (-50.9423, -73.4068),
+        "Mount Cook": (-43.5950, 170.1418),
+        "Blue Mountains": (-33.7000, 150.3000),
+        "Table Mountain": (-33.9625, 18.4097),
+        "Mount Kenya": (-0.1521, 37.3084),
+        "Atlas Mountains": (31.0600, -7.9100),
+        "Death Valley": (36.5054, -117.0794),
+        "Badlands": (43.8554, -102.3397),
+        "Aconcagua": (-32.6532, -70.0109),
+        "K2": (35.8808, 76.5155),
+        "Annapurna": (28.5964, 83.8203),
+        "Machu Picchu": (-13.1631, -72.5450),
+        "Hawaii Volcanoes": (19.4194, -155.2885),
+        "Mount St. Helens": (46.1912, -122.1944),
+        "Teide": (28.2723, -16.6424),
+        "Mount Etna": (37.7510, 14.9934),
+    }
+    
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_ui()
         
     def setup_ui(self):
         layout = QVBoxLayout(self)
+        
+        # Location search
+        search_group = QGroupBox("Search Location")
+        search_layout = QVBoxLayout(search_group)
+        
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Type to search locations...")
+        
+        # Setup autocomplete
+        location_names = list(self.KNOWN_LOCATIONS.keys())
+        completer = QCompleter(location_names)
+        completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        completer.setFilterMode(Qt.MatchFlag.MatchContains)
+        self.search_input.setCompleter(completer)
+        
+        # Connect search
+        self.search_input.returnPressed.connect(self._on_search)
+        
+        search_layout.addWidget(self.search_input)
+        
+        search_btn = QPushButton("Search")
+        search_btn.clicked.connect(self._on_search)
+        search_layout.addWidget(search_btn)
+        
+        layout.addWidget(search_group)
         
         # Coordinates input
         coords_group = QGroupBox("Location Coordinates")
@@ -132,7 +202,7 @@ class MapSelectionPanel(QWidget):
         quick_group = QGroupBox("Quick Locations")
         quick_layout = QVBoxLayout(quick_group)
         
-        locations = [
+        quick_locations = [
             ("Mount Everest", 27.9881, 86.9250),
             ("Grand Canyon", 36.1069, -112.1129),
             ("Matterhorn", 45.9766, 7.6586),
@@ -140,13 +210,40 @@ class MapSelectionPanel(QWidget):
             ("Yosemite Valley", 37.7456, -119.5936),
         ]
         
-        for name, lat, lon in locations:
+        for name, lat, lon in quick_locations:
             btn = QPushButton(name)
             btn.clicked.connect(lambda checked, la=lat, lo=lon: self.set_location(la, lo))
             quick_layout.addWidget(btn)
             
         layout.addWidget(quick_group)
         layout.addStretch()
+        
+    def _on_search(self):
+        """Handle search input."""
+        search_text = self.search_input.text().strip()
+        if not search_text:
+            return
+            
+        # Try to find exact match first (case-insensitive)
+        for name, (lat, lon) in self.KNOWN_LOCATIONS.items():
+            if name.lower() == search_text.lower():
+                self.set_location(lat, lon)
+                self.search_input.clear()
+                return
+                
+        # Try partial match
+        for name, (lat, lon) in self.KNOWN_LOCATIONS.items():
+            if search_text.lower() in name.lower():
+                self.set_location(lat, lon)
+                self.search_input.clear()
+                return
+                
+        # No match found - show message
+        QMessageBox.information(
+            self, "Location Not Found",
+            f"Location '{search_text}' not found in database.\n\n"
+            "You can manually enter coordinates or select from Quick Locations."
+        )
         
     def set_location(self, lat: float, lon: float):
         """Set the location coordinates."""
@@ -384,8 +481,13 @@ class GenerateMeshWorker(QThread):
         try:
             self.progress.emit(10, "Generating terrain data...")
             
-            # Use synthetic elevation for demo
-            source = SyntheticElevationSource(seed=42)
+            # Generate a unique seed based on location bounds to get different terrain
+            # for different locations (avoiding the fixed seed=42 that caused repeating terrain)
+            min_lon, min_lat, max_lon, max_lat = self.bounds
+            # Create a seed from location that produces varied but reproducible results
+            seed = int(abs(min_lat * 10000 + min_lon * 1000 + max_lat * 100 + max_lon * 10)) % (2**31)
+            
+            source = SyntheticElevationSource(seed=seed)
             elevation, metadata = source.get_elevation_data(self.bounds, 
                                                             self.settings.mesh_resolution)
             
@@ -511,14 +613,17 @@ class MainWindow(QMainWindow):
         
         new_action = QAction("&New Project", self)
         new_action.setShortcut("Ctrl+N")
+        new_action.triggered.connect(self.new_project)
         file_menu.addAction(new_action)
         
         open_action = QAction("&Open Project", self)
         open_action.setShortcut("Ctrl+O")
+        open_action.triggered.connect(self.open_project)
         file_menu.addAction(open_action)
         
         save_action = QAction("&Save Project", self)
         save_action.setShortcut("Ctrl+S")
+        save_action.triggered.connect(self.save_project)
         file_menu.addAction(save_action)
         
         file_menu.addSeparator()
@@ -576,12 +681,27 @@ class MainWindow(QMainWindow):
         toolbar.setMovable(False)
         self.addToolBar(toolbar)
         
-        toolbar.addAction("New")
-        toolbar.addAction("Open")
-        toolbar.addAction("Save")
+        # New action
+        new_action = toolbar.addAction("New")
+        new_action.triggered.connect(self.new_project)
+        
+        # Open action
+        open_action = toolbar.addAction("Open")
+        open_action.triggered.connect(self.open_project)
+        
+        # Save action
+        save_action = toolbar.addAction("Save")
+        save_action.triggered.connect(self.save_project)
+        
         toolbar.addSeparator()
-        toolbar.addAction("Generate")
-        toolbar.addAction("Export")
+        
+        # Generate action
+        generate_action = toolbar.addAction("Generate")
+        generate_action.triggered.connect(self.generate_terrain)
+        
+        # Export action
+        export_action = toolbar.addAction("Export")
+        export_action.triggered.connect(self.export_stl)
         
     def setup_statusbar(self):
         """Setup status bar."""
@@ -734,6 +854,121 @@ File size: {stats['estimated_file_size_mb']:.2f} MB"""
             QMessageBox.information(self, "Import", 
                                    f"DEM file selected:\n{filepath}\n\n"
                                    "Note: Full DEM import requires rasterio library.")
+    
+    def new_project(self):
+        """Create a new project, resetting all settings."""
+        reply = QMessageBox.question(
+            self, "New Project",
+            "Create a new project? Any unsaved changes will be lost.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            # Reset to default location (Matterhorn)
+            self.map_panel.set_location(45.9766, 7.6586)
+            
+            # Reset terrain settings
+            self.terrain_settings.exaggeration_spin.setValue(2.0)
+            self.terrain_settings.smoothing_spin.setValue(1.0)
+            self.terrain_settings.width_spin.setValue(150)
+            self.terrain_settings.height_spin.setValue(150)
+            self.terrain_settings.max_height_spin.setValue(30)
+            self.terrain_settings.base_type_combo.setCurrentIndex(0)
+            self.terrain_settings.base_thickness_spin.setValue(3)
+            self.terrain_settings.resolution_spin.setValue(256)
+            
+            # Clear current mesh
+            self.current_mesh = None
+            self.viewport.mesh_data = None
+            self.viewport.info_label.setText("3D Preview\n\nLoad terrain data to see preview")
+            self.viewport.info_label.setStyleSheet("color: #888; font-size: 14px;")
+            self.export_btn.setEnabled(False)
+            
+            self.statusbar.showMessage("New project created")
+    
+    def open_project(self):
+        """Open a project file."""
+        filepath, _ = QFileDialog.getOpenFileName(
+            self, "Open Project", "",
+            "Terrain Project Files (*.tproj *.json);;All Files (*)"
+        )
+        
+        if filepath:
+            try:
+                import json
+                with open(filepath, 'r') as f:
+                    project = json.load(f)
+                
+                # Load location
+                if 'location' in project:
+                    self.map_panel.lat_spin.setValue(project['location'].get('lat', 45.9766))
+                    self.map_panel.lon_spin.setValue(project['location'].get('lon', 7.6586))
+                    self.map_panel.area_width.setValue(project['location'].get('width', 10))
+                    self.map_panel.area_height.setValue(project['location'].get('height', 10))
+                
+                # Load terrain settings
+                if 'terrain' in project:
+                    t = project['terrain']
+                    self.terrain_settings.exaggeration_spin.setValue(t.get('exaggeration', 2.0))
+                    self.terrain_settings.smoothing_spin.setValue(t.get('smoothing', 1.0))
+                    self.terrain_settings.width_spin.setValue(t.get('map_width', 150))
+                    self.terrain_settings.height_spin.setValue(t.get('map_height', 150))
+                    self.terrain_settings.max_height_spin.setValue(t.get('max_height', 30))
+                    self.terrain_settings.base_thickness_spin.setValue(t.get('base_thickness', 3))
+                    self.terrain_settings.resolution_spin.setValue(t.get('resolution', 256))
+                    
+                    # Set base type
+                    base_type = t.get('base_type', 'flat')
+                    idx = self.terrain_settings.base_type_combo.findText(base_type)
+                    if idx >= 0:
+                        self.terrain_settings.base_type_combo.setCurrentIndex(idx)
+                
+                self.statusbar.showMessage(f"Project loaded: {filepath}")
+                
+            except Exception as e:
+                QMessageBox.critical(self, "Open Error", f"Failed to open project:\n{e}")
+    
+    def save_project(self):
+        """Save the current project to a file."""
+        filepath, _ = QFileDialog.getSaveFileName(
+            self, "Save Project", "",
+            "Terrain Project Files (*.tproj);;JSON Files (*.json);;All Files (*)"
+        )
+        
+        if filepath:
+            if not filepath.lower().endswith(('.tproj', '.json')):
+                filepath += '.tproj'
+            
+            try:
+                import json
+                project = {
+                    'version': '1.0',
+                    'location': {
+                        'lat': self.map_panel.lat_spin.value(),
+                        'lon': self.map_panel.lon_spin.value(),
+                        'width': self.map_panel.area_width.value(),
+                        'height': self.map_panel.area_height.value(),
+                    },
+                    'terrain': {
+                        'exaggeration': self.terrain_settings.exaggeration_spin.value(),
+                        'smoothing': self.terrain_settings.smoothing_spin.value(),
+                        'map_width': self.terrain_settings.width_spin.value(),
+                        'map_height': self.terrain_settings.height_spin.value(),
+                        'max_height': self.terrain_settings.max_height_spin.value(),
+                        'base_type': self.terrain_settings.base_type_combo.currentText(),
+                        'base_thickness': self.terrain_settings.base_thickness_spin.value(),
+                        'resolution': self.terrain_settings.resolution_spin.value(),
+                    }
+                }
+                
+                with open(filepath, 'w') as f:
+                    json.dump(project, f, indent=2)
+                
+                self.statusbar.showMessage(f"Project saved: {filepath}")
+                
+            except Exception as e:
+                QMessageBox.critical(self, "Save Error", f"Failed to save project:\n{e}")
             
     def show_about(self):
         """Show about dialog."""
