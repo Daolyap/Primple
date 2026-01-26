@@ -48,8 +48,8 @@ public class GeocodingService : IGeocodingService
             {
                 Name = r.Name ?? r.DisplayName?.Split(',').FirstOrDefault() ?? "Unknown",
                 DisplayName = r.DisplayName ?? "",
-                Latitude = double.Parse(r.Lat, CultureInfo.InvariantCulture),
-                Longitude = double.Parse(r.Lon, CultureInfo.InvariantCulture),
+                Latitude = double.Parse(r.Lat ?? "0", CultureInfo.InvariantCulture),
+                Longitude = double.Parse(r.Lon ?? "0", CultureInfo.InvariantCulture),
                 Type = r.Type ?? r.Class ?? "place",
                 Bounds = r.BoundingBox != null && r.BoundingBox.Length == 4
                     ? new GeographicBounds(
