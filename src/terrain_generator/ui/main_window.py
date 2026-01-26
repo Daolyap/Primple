@@ -6,7 +6,6 @@ optimized for Bambu Labs printers.
 
 import sys
 import numpy as np
-from pathlib import Path
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -18,15 +17,14 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
 from PyQt6.QtGui import QAction, QIcon, QColor
 
-# Import our modules
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from terrain_generator.core.terrain_processor import TerrainProcessor, TerrainSettings
-from terrain_generator.core.mesh_generator import MeshGenerator, MeshData
-from terrain_generator.core.printer_profiles import (
+# Import our modules using relative imports
+from ..core.terrain_processor import TerrainProcessor, TerrainSettings
+from ..core.mesh_generator import MeshGenerator, MeshData
+from ..core.printer_profiles import (
     get_all_printers, get_printer_profile, PrinterProfile, BAMBU_PRINTERS
 )
-from terrain_generator.exporters.stl_exporter import STLExporter, ThreeMFExporter
-from terrain_generator.data_sources.elevation_sources import SyntheticElevationSource
+from ..exporters.stl_exporter import STLExporter, ThreeMFExporter
+from ..data_sources.elevation_sources import SyntheticElevationSource
 
 
 class Viewport3D(QFrame):
@@ -99,14 +97,14 @@ class MapSelectionPanel(QWidget):
         self.lat_spin = QDoubleSpinBox()
         self.lat_spin.setRange(-90, 90)
         self.lat_spin.setDecimals(6)
-        self.lat_spin.setValue(46.8523)  # Matterhorn
+        self.lat_spin.setValue(45.9766)  # Matterhorn
         self.lat_spin.setSuffix("°")
         coords_layout.addRow("Latitude:", self.lat_spin)
         
         self.lon_spin = QDoubleSpinBox()
         self.lon_spin.setRange(-180, 180)
         self.lon_spin.setDecimals(6)
-        self.lon_spin.setValue(7.7589)  # Matterhorn
+        self.lon_spin.setValue(7.6586)  # Matterhorn
         self.lon_spin.setSuffix("°")
         coords_layout.addRow("Longitude:", self.lon_spin)
         

@@ -4,6 +4,8 @@ Exports terrain meshes to STL format for 3D printing.
 """
 
 import struct
+import zipfile
+import xml.etree.ElementTree as ET
 import numpy as np
 from typing import Optional
 from pathlib import Path
@@ -202,9 +204,6 @@ class ThreeMFExporter:
             colors: Optional Nx3 array of RGB colors per vertex
             metadata: Optional metadata dictionary
         """
-        import zipfile
-        import xml.etree.ElementTree as ET
-        
         filepath = Path(filepath)
         filepath.parent.mkdir(parents=True, exist_ok=True)
         

@@ -5,11 +5,27 @@ Provides access to elevation data from various sources.
 
 import numpy as np
 import requests
+import tempfile
+import zipfile
+import xml.etree.ElementTree as ET
 from typing import Tuple, Optional
 from pathlib import Path
 from abc import ABC, abstractmethod
 import struct
 import os
+
+try:
+    from scipy import ndimage
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+
+try:
+    import rasterio
+    from rasterio.windows import from_bounds
+    HAS_RASTERIO = True
+except ImportError:
+    HAS_RASTERIO = False
 
 
 class ElevationDataSource(ABC):
@@ -108,8 +124,8 @@ class SyntheticElevationSource(ElevationDataSource):
         terrain = terrain / max_value
         
         # Apply erosion-like smoothing
-        from scipy import ndimage
-        terrain = ndimage.gaussian_filter(terrain, sigma=1.0)
+        if HAS_SCIPY:
+            terrain = ndimage.gaussian_filter(terrain, sigma=1.0)
         
         # Add some ridges
         ridges = self._generate_ridges(size)
@@ -183,6 +199,9 @@ class GeoTIFFSource(ElevationDataSource):
         Args:
             filepath: Path to the .tif or .tiff file
         """
+        if not HAS_RASTERIO:
+            raise ImportError("rasterio is required for GeoTIFF support. "
+                            "Install with: pip install rasterio")
         self.filepath = Path(filepath)
         if not self.filepath.exists():
             raise FileNotFoundError(f"GeoTIFF file not found: {filepath}")
@@ -193,36 +212,28 @@ class GeoTIFFSource(ElevationDataSource):
     def get_elevation_data(self, bounds: Tuple[float, float, float, float],
                           resolution: Optional[int] = None) -> Tuple[np.ndarray, dict]:
         """Load and crop elevation data from GeoTIFF."""
-        try:
-            import rasterio
-            from rasterio.windows import from_bounds
+        with rasterio.open(self.filepath) as src:
+            # Get window for bounds
+            window = from_bounds(*bounds, src.transform)
             
-            with rasterio.open(self.filepath) as src:
-                # Get window for bounds
-                window = from_bounds(*bounds, src.transform)
+            # Read data
+            data = src.read(1, window=window)
+            
+            # Handle nodata
+            if src.nodata is not None:
+                data = np.where(data == src.nodata, np.nan, data)
                 
-                # Read data
-                data = src.read(1, window=window)
-                
-                # Handle nodata
-                if src.nodata is not None:
-                    data = np.where(data == src.nodata, np.nan, data)
-                    
-                metadata = {
-                    "source": self.get_source_name(),
-                    "bounds": bounds,
-                    "resolution": data.shape[0],
-                    "crs": str(src.crs),
-                    "min_elevation": float(np.nanmin(data)),
-                    "max_elevation": float(np.nanmax(data)),
-                    "units": "meters"
-                }
-                
-                return data.astype(np.float32), metadata
-                
-        except ImportError:
-            raise ImportError("rasterio is required for GeoTIFF support. "
-                            "Install with: pip install rasterio")
+            metadata = {
+                "source": self.get_source_name(),
+                "bounds": bounds,
+                "resolution": data.shape[0],
+                "crs": str(src.crs),
+                "min_elevation": float(np.nanmin(data)),
+                "max_elevation": float(np.nanmax(data)),
+                "units": "meters"
+            }
+            
+            return data.astype(np.float32), metadata
 
 
 class HGTSource(ElevationDataSource):
@@ -309,11 +320,64 @@ class HGTSource(ElevationDataSource):
         
     def _stitch_tiles(self, tiles, bounds) -> np.ndarray:
         """Stitch multiple tiles and crop to bounds."""
-        # For simplicity, just return the first tile cropped
-        # Full implementation would stitch multiple tiles
-        if len(tiles) > 0:
-            return tiles[0][2]
-        return np.array([])
+        if not tiles:
+            return np.array([])
+            
+        if len(tiles) == 1:
+            # Single tile - just crop to bounds
+            lat, lon, data = tiles[0]
+            return self._crop_to_bounds(data, lat, lon, bounds)
+            
+        # Multiple tiles - determine grid layout and stitch
+        min_lat = min(t[0] for t in tiles)
+        max_lat = max(t[0] for t in tiles)
+        min_lon = min(t[1] for t in tiles)
+        max_lon = max(t[1] for t in tiles)
+        
+        num_lat = max_lat - min_lat + 1
+        num_lon = max_lon - min_lon + 1
+        
+        # Get tile size from first tile
+        tile_size = tiles[0][2].shape[0]
+        
+        # Create output array (tiles overlap by 1 pixel, so subtract overlaps)
+        out_height = num_lat * (tile_size - 1) + 1
+        out_width = num_lon * (tile_size - 1) + 1
+        result = np.full((out_height, out_width), np.nan, dtype=np.float32)
+        
+        # Place each tile in the grid
+        for lat, lon, data in tiles:
+            lat_idx = max_lat - lat  # Top-down indexing
+            lon_idx = lon - min_lon
+            
+            row_start = lat_idx * (tile_size - 1)
+            col_start = lon_idx * (tile_size - 1)
+            
+            result[row_start:row_start + tile_size, 
+                   col_start:col_start + tile_size] = data
+                   
+        return result
+        
+    def _crop_to_bounds(self, data: np.ndarray, tile_lat: int, tile_lon: int,
+                        bounds: Tuple[float, float, float, float]) -> np.ndarray:
+        """Crop tile data to the specified bounds."""
+        min_lon, min_lat, max_lon, max_lat = bounds
+        tile_size = data.shape[0]
+        
+        # Calculate pixel coordinates for bounds within this tile
+        # Each tile covers 1 degree, from tile_lat to tile_lat+1 and tile_lon to tile_lon+1
+        row_start = int((tile_lat + 1 - max_lat) * (tile_size - 1))
+        row_end = int((tile_lat + 1 - min_lat) * (tile_size - 1))
+        col_start = int((min_lon - tile_lon) * (tile_size - 1))
+        col_end = int((max_lon - tile_lon) * (tile_size - 1))
+        
+        # Clamp to valid range
+        row_start = max(0, row_start)
+        row_end = min(tile_size, row_end)
+        col_start = max(0, col_start)
+        col_end = min(tile_size, col_end)
+        
+        return data[row_start:row_end, col_start:col_end]
 
 
 class OpenTopographySource(ElevationDataSource):
