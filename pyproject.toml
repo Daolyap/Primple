@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "terrain-map-generator"
+version = "1.0.0"
+description = "A Windows application for creating 3D-printable terrain maps, optimized for Bambu Labs printers"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Terrain Map Generator Team"}
+]
+keywords = ["3d-printing", "terrain", "maps", "stl", "bambu-labs"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+
+dependencies = [
+    "PyQt6>=6.6.0",
+    "PyQt6-WebEngine>=6.6.0",
+    "PyOpenGL>=3.1.7",
+    "numpy>=1.24.0",
+    "numpy-stl>=3.0.0",
+    "trimesh>=4.0.0",
+    "scipy>=1.11.0",
+    "rasterio>=1.3.0",
+    "pyproj>=3.6.0",
+    "requests>=2.31.0",
+    "Pillow>=10.0.0",
+    "shapely>=2.0.0",
+    "matplotlib>=3.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-qt>=4.0.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+terrain-generator = "terrain_generator.ui.main_window:main"
+
+[project.gui-scripts]
+terrain-generator-gui = "terrain_generator.ui.main_window:main"
+
+[project.urls]
+Homepage = "https://github.com/terrain-map-generator/terrain-map-generator"
+Documentation = "https://github.com/terrain-map-generator/terrain-map-generator#readme"
+Repository = "https://github.com/terrain-map-generator/terrain-map-generator"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311', 'py312']
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
