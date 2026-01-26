@@ -3,16 +3,13 @@ Elevation Data Sources
 Provides access to elevation data from various sources.
 """
 
+import os
+import tempfile
 import numpy as np
 import requests
-import tempfile
-import zipfile
-import xml.etree.ElementTree as ET
 from typing import Tuple, Optional
 from pathlib import Path
 from abc import ABC, abstractmethod
-import struct
-import os
 
 try:
     from scipy import ndimage
@@ -388,6 +385,12 @@ class OpenTopographySource(ElevationDataSource):
     
     BASE_URL = "https://portal.opentopography.org/API/globaldem"
     
+    # Valid DEM types supported by OpenTopography API
+    VALID_DEM_TYPES = frozenset([
+        "SRTMGL3", "SRTMGL1", "SRTMGL1_E", "AW3D30", "AW3D30_E",
+        "NASADEM", "COP30", "COP90", "EU_DTM", "GEDI_L3"
+    ])
+    
     def __init__(self, api_key: Optional[str] = None):
         """
         Initialize with OpenTopography API key.
@@ -416,6 +419,20 @@ class OpenTopographySource(ElevationDataSource):
         """
         min_lon, min_lat, max_lon, max_lat = bounds
         
+        # Validate bounds
+        if not (-180 <= min_lon <= 180 and -180 <= max_lon <= 180):
+            raise ValueError(f"Longitude values must be between -180 and 180, got min={min_lon}, max={max_lon}")
+        if not (-90 <= min_lat <= 90 and -90 <= max_lat <= 90):
+            raise ValueError(f"Latitude values must be between -90 and 90, got min={min_lat}, max={max_lat}")
+        if min_lon >= max_lon:
+            raise ValueError(f"min_lon ({min_lon}) must be less than max_lon ({max_lon})")
+        if min_lat >= max_lat:
+            raise ValueError(f"min_lat ({min_lat}) must be less than max_lat ({max_lat})")
+            
+        # Validate DEM type
+        if dem_type not in self.VALID_DEM_TYPES:
+            raise ValueError(f"Invalid dem_type '{dem_type}'. Valid types are: {sorted(self.VALID_DEM_TYPES)}")
+        
         params = {
             "demtype": dem_type,
             "south": min_lat,
@@ -433,19 +450,23 @@ class OpenTopographySource(ElevationDataSource):
             response.raise_for_status()
             
             # Save to temporary file and read with rasterio
-            import tempfile
-            with tempfile.NamedTemporaryFile(suffix='.tif', delete=False) as tmp:
-                tmp.write(response.content)
-                tmp_path = tmp.name
-                
+            tmp_path = None
             try:
-                import rasterio
+                with tempfile.NamedTemporaryFile(suffix='.tif', delete=False) as tmp:
+                    tmp.write(response.content)
+                    tmp_path = tmp.name
+
+                if not HAS_RASTERIO:
+                    raise ImportError(
+                        "rasterio is required to read OpenTopography GTiff data. Please install rasterio."
+                    )
                 with rasterio.open(tmp_path) as src:
                     data = src.read(1)
                     if src.nodata is not None:
                         data = np.where(data == src.nodata, np.nan, data)
             finally:
-                os.unlink(tmp_path)
+                if tmp_path and os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
                 
             metadata = {
                 "source": self.get_source_name(),

@@ -74,6 +74,14 @@ class TerrainProcessor:
         
         # Handle nodata values
         nodata_mask = ~np.isfinite(data) | (data < -1000)
+        
+        # Check if all values are nodata
+        if np.all(nodata_mask):
+            raise ValueError(
+                "All elevation data values are invalid (NaN or nodata). "
+                "Cannot process terrain with no valid data points."
+            )
+        
         if np.any(nodata_mask):
             # Fill nodata with nearest neighbor interpolation
             indices = ndimage.distance_transform_edt(
@@ -216,8 +224,15 @@ class TerrainProcessor:
             Z = Z + base_thickness
             
         elif base_type == "contoured":
-            # Base follows terrain at offset
-            Z = Z + base_thickness
+            # Base follows terrain with elevation-dependent thickness
+            min_z = np.nanmin(Z)
+            max_z = np.nanmax(Z)
+            # Avoid division by zero if terrain is perfectly flat
+            denom = max_z - min_z if max_z != min_z else 1.0
+            norm = (Z - min_z) / denom
+            # Thicker base in lower areas, thinner in higher areas
+            thickness_map = base_thickness * (1.0 - 0.5 * norm)
+            Z = Z + thickness_map
             
         elif base_type == "tapered":
             # Thicker at edges, thinner in center

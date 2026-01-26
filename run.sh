@@ -26,8 +26,12 @@ source venv/bin/activate
 # Install dependencies if needed
 if [ ! -f "venv/installed.marker" ]; then
     echo "Installing dependencies..."
-    pip install -r requirements.txt
-    touch venv/installed.marker
+    if pip install -r requirements.txt; then
+        touch venv/installed.marker
+    else
+        echo "Dependency installation failed. Please check the errors above."
+        exit 1
+    fi
 fi
 
 # Run the application

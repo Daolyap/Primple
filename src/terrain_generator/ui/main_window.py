@@ -9,19 +9,19 @@ import numpy as np
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QSplitter, QTabWidget, QGroupBox, QLabel, QSlider, QDoubleSpinBox,
+    QSplitter, QTabWidget, QGroupBox, QLabel, QDoubleSpinBox,
     QSpinBox, QComboBox, QPushButton, QFileDialog, QStatusBar,
-    QMenuBar, QMenu, QToolBar, QProgressBar, QMessageBox, QFrame,
-    QScrollArea, QCheckBox, QLineEdit, QFormLayout
+    QToolBar, QProgressBar, QMessageBox, QFrame,
+    QScrollArea, QFormLayout
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
-from PyQt6.QtGui import QAction, QIcon, QColor
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtGui import QAction
 
 # Import our modules using relative imports
 from ..core.terrain_processor import TerrainProcessor, TerrainSettings
 from ..core.mesh_generator import MeshGenerator, MeshData
 from ..core.printer_profiles import (
-    get_all_printers, get_printer_profile, PrinterProfile, BAMBU_PRINTERS
+    get_all_printers, get_printer_profile, PrinterProfile
 )
 from ..exporters.stl_exporter import STLExporter, ThreeMFExporter
 from ..data_sources.elevation_sources import SyntheticElevationSource
@@ -163,7 +163,11 @@ class MapSelectionPanel(QWidget):
         km_per_deg_lat = 111.0
         km_per_deg_lon = 111.0 * np.cos(np.radians(lat))
         
-        width_deg = self.area_width.value() / km_per_deg_lon / 2
+        # Avoid division by zero at polar latitudes where cos(latitude) == 0
+        if abs(km_per_deg_lon) < 1e-6:
+            width_deg = 0.0
+        else:
+            width_deg = self.area_width.value() / km_per_deg_lon / 2
         height_deg = self.area_height.value() / km_per_deg_lat / 2
         
         return (
@@ -599,7 +603,25 @@ class MainWindow(QMainWindow):
             settings.map_width, settings.map_height, settings.max_print_height
         )
         if not is_valid:
-            QMessageBox.warning(self, "Dimension Warning", msg)
+            # Make the non-blocking validation explicit: ask the user whether to continue.
+            detailed_msg = (
+                msg
+                + "\n\nThe generated mesh may not fit on the selected printer.\n"
+                + "Do you want to continue generation anyway?"
+            )
+            reply = QMessageBox.warning(
+                self,
+                "Dimension Warning",
+                detailed_msg,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                # User chose not to proceed; cancel generation.
+                self.statusbar.showMessage(
+                    "Generation cancelled due to printer dimension limits"
+                )
+                return
             
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)

@@ -30,6 +30,11 @@ REM Install dependencies if needed
 if not exist "venv\installed.marker" (
     echo Installing dependencies...
     pip install -r requirements.txt
+    if errorlevel 1 (
+        echo Failed to install dependencies. Please check the error messages above.
+        pause
+        exit /b 1
+    )
     echo. > venv\installed.marker
 )
 

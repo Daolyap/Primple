@@ -36,8 +36,8 @@ class STLExporter:
         filepath.parent.mkdir(parents=True, exist_ok=True)
         
         with open(filepath, 'wb') as f:
-            # Write header (80 bytes)
-            header_bytes = header.encode('ascii')[:80]
+            # Write header (80 bytes) - use 'replace' error handling for non-ASCII characters
+            header_bytes = header.encode('ascii', errors='replace')[:80]
             header_bytes = header_bytes.ljust(80, b'\0')
             f.write(header_bytes)
             
@@ -55,6 +55,9 @@ class STLExporter:
                 norm_len = np.linalg.norm(normal)
                 if norm_len > 0:
                     normal = normal / norm_len
+                else:
+                    # Use a default normal for degenerate triangles
+                    normal = np.array([0.0, 0.0, 1.0], dtype=float)
                     
                 # Write normal (3 floats, 12 bytes)
                 f.write(struct.pack('<3f', *normal))
@@ -95,6 +98,9 @@ class STLExporter:
                 norm_len = np.linalg.norm(normal)
                 if norm_len > 0:
                     normal = normal / norm_len
+                else:
+                    # Fallback normal for degenerate triangles to avoid zero-length normals in STL
+                    normal = np.array([0.0, 0.0, 1.0], dtype=float)
                     
                 f.write(f"  facet normal {normal[0]:.6e} {normal[1]:.6e} {normal[2]:.6e}\n")
                 f.write(f"    outer loop\n")
