@@ -5,6 +5,7 @@ optimized for Bambu Labs printers.
 """
 
 import sys
+import hashlib
 import numpy as np
 
 from PyQt6.QtWidgets import (
@@ -14,7 +15,7 @@ from PyQt6.QtWidgets import (
     QToolBar, QProgressBar, QMessageBox, QFrame,
     QScrollArea, QFormLayout, QLineEdit, QCompleter
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QStringListModel
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QAction
 
 # Import our modules using relative imports
@@ -109,7 +110,7 @@ class MapSelectionPanel(QWidget):
         "Norwegian Fjords": (61.5000, 6.0000),
         "Iceland Volcanic": (64.9631, -19.0208),
         "Himalayas": (28.0000, 85.0000),
-        "Andes Mountains": (-22.8371, -67.0544),  # Corrected: Andes central region
+        "Andes Mountains": (-22.8371, -67.0544),
         "Patagonia": (-50.9423, -73.4068),
         "Mount Cook": (-43.5950, 170.1418),
         "Blue Mountains": (-33.7000, 150.3000),
@@ -198,19 +199,20 @@ class MapSelectionPanel(QWidget):
         
         layout.addWidget(size_group)
         
-        # Quick locations
+        # Quick locations - reference KNOWN_LOCATIONS to avoid duplication
         quick_group = QGroupBox("Quick Locations")
         quick_layout = QVBoxLayout(quick_group)
         
-        quick_locations = [
-            ("Mount Everest", 27.9881, 86.9250),
-            ("Grand Canyon", 36.1069, -112.1129),
-            ("Matterhorn", 45.9766, 7.6586),
-            ("Mount Fuji", 35.3606, 138.7274),
-            ("Yosemite Valley", 37.7456, -119.5936),
+        quick_location_names = [
+            "Mount Everest",
+            "Grand Canyon", 
+            "Matterhorn",
+            "Mount Fuji",
+            "Yosemite Valley",
         ]
         
-        for name, lat, lon in quick_locations:
+        for name in quick_location_names:
+            lat, lon = self.KNOWN_LOCATIONS[name]
             btn = QPushButton(name)
             btn.clicked.connect(lambda checked, la=lat, lo=lon: self.set_location(la, lo))
             quick_layout.addWidget(btn)
@@ -230,20 +232,40 @@ class MapSelectionPanel(QWidget):
                 self.set_location(lat, lon)
                 self.search_input.clear()
                 return
-                
-        # Try partial match
+        
+        # Collect all partial matches
+        matches = []
         for name, (lat, lon) in self.KNOWN_LOCATIONS.items():
             if search_text.lower() in name.lower():
-                self.set_location(lat, lon)
-                self.search_input.clear()
-                return
-                
-        # No match found - show message
-        QMessageBox.information(
-            self, "Location Not Found",
-            f"Location '{search_text}' not found in database.\n\n"
-            "You can manually enter coordinates or select from Quick Locations."
-        )
+                matches.append((name, lat, lon))
+        
+        if len(matches) == 1:
+            # Single match - use it directly
+            name, lat, lon = matches[0]
+            self.set_location(lat, lon)
+            self.search_input.clear()
+        elif len(matches) > 1:
+            # Multiple matches - show disambiguation dialog
+            from PyQt6.QtWidgets import QInputDialog
+            names = [m[0] for m in matches]
+            selected, ok = QInputDialog.getItem(
+                self, "Multiple Matches",
+                f"Multiple locations match '{search_text}'.\nPlease select one:",
+                names, 0, False
+            )
+            if ok and selected:
+                for name, lat, lon in matches:
+                    if name == selected:
+                        self.set_location(lat, lon)
+                        self.search_input.clear()
+                        break
+        else:
+            # No match found - show message
+            QMessageBox.information(
+                self, "Location Not Found",
+                f"Location '{search_text}' not found in database.\n\n"
+                "You can manually enter coordinates or select from Quick Locations."
+            )
         
     def set_location(self, lat: float, lon: float):
         """Set the location coordinates."""
@@ -482,9 +504,10 @@ class GenerateMeshWorker(QThread):
             self.progress.emit(10, "Generating terrain data...")
             
             # Generate a unique seed based on location bounds to get different terrain
-            # for different locations (avoiding the fixed seed=42 that caused repeating terrain)
-            # Use hash() on the bounds tuple for better distribution and to avoid collisions
-            seed = abs(hash(self.bounds)) % (2**31)
+            # for different locations. Using hashlib.md5 for deterministic hashing
+            # that remains consistent across Python sessions (unlike hash() which
+            # is randomized by default since Python 3.3)
+            seed = int(hashlib.md5(str(self.bounds).encode()).hexdigest()[:8], 16) % (2**31)
             
             source = SyntheticElevationSource(seed=seed)
             elevation, metadata = source.get_elevation_data(self.bounds, 
@@ -866,6 +889,10 @@ File size: {stats['estimated_file_size_mb']:.2f} MB"""
         if reply == QMessageBox.StandardButton.Yes:
             # Reset to default location (Matterhorn)
             self.map_panel.set_location(45.9766, 7.6586)
+            
+            # Reset area selection to defaults
+            self.map_panel.area_width.setValue(10)
+            self.map_panel.area_height.setValue(10)
             
             # Reset terrain settings
             self.terrain_settings.exaggeration_spin.setValue(2.0)
